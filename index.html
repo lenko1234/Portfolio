@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Design Portfolio | Experiencias Digitales Premium</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Plus+Jakarta+Sans:wght@800&display=swap"
@@ -16,12 +17,51 @@
             --emerald-bright: #34d399;
         }
 
+        /* === HERO SECTION STYLES === */
+        #hero-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            opacity: 1;
+            transition: opacity 0.8s ease;
+        }
+
+        #hero-ui {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 15;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.8s ease;
+        }
+
+        .hero-content {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 1;
+            transition: opacity 0.8s ease;
+            pointer-events: none;
+        }
+
+        .hero-content * {
+            pointer-events: auto;
+        }
+
+        /* === MAIN BODY STYLES === */
         html,
         body {
             background-color: #000;
             margin: 0;
             padding: 0;
-            height: 2000vh;
+            height: 4000vh;
             /* Scroll depth for timeline scrubbing */
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -196,10 +236,238 @@
                     transparent 50%);
             pointer-events: none;
         }
+
+        /* === CTA SECTION STYLES === */
+
+        /* Section Header */
+        .section-header {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--emerald);
+            opacity: 0;
+            letter-spacing: 0.4em;
+            text-align: center;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        /* CTA Container */
+        #cta-section {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 35;
+            background: radial-gradient(circle at center, #020804 0%, #000 100%);
+        }
+
+        #cta-section.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Matrix Grid Background */
+        .grid-line-h {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .grid-line-v {
+            position: absolute;
+            height: 100%;
+            width: 1px;
+            background: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Bulb Light & Shine Effects */
+        .bulb-text {
+            position: relative;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.9), 0 0 40px rgba(16, 185, 129, 0.4);
+            animation: flicker 4s infinite;
+            display: inline-block;
+        }
+
+        .shine-overlay {
+            position: absolute;
+            inset: 0;
+            color: white;
+            opacity: 0;
+            filter: blur(6px);
+            pointer-events: none;
+            white-space: nowrap;
+            animation: shine 5s ease-in-out infinite;
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            opacity: 0.2;
+            pointer-events: none;
+            animation: scanline 4s linear infinite;
+        }
+
+        /* Terminal Buttons */
+        .terminal-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(4px);
+            padding: 1.25rem 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.3em;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--emerald);
+            cursor: pointer;
+        }
+
+        .terminal-btn:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--emerald);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        .terminal-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .terminal-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .glow-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--emerald);
+            animation: pulse 2s infinite;
+        }
+
+        /* Animations */
+        @keyframes flicker {
+
+            0%,
+            18%,
+            22%,
+            62%,
+            64%,
+            66%,
+            70%,
+            100% {
+                opacity: 1;
+            }
+
+            20%,
+            63%,
+            65%,
+            69% {
+                opacity: 0.5;
+                filter: brightness(0.8);
+            }
+        }
+
+        @keyframes shine {
+
+            0%,
+            10% {
+                opacity: 0;
+                transform: translateX(-10%) skewX(-20deg);
+            }
+
+            20% {
+                opacity: 0.6;
+                transform: translateX(0%) skewX(-20deg);
+            }
+
+            30%,
+            100% {
+                opacity: 0;
+                transform: translateX(10%) skewX(-20deg);
+            }
+        }
+
+        @keyframes scanline {
+            0% {
+                top: -10%;
+            }
+
+            100% {
+                top: 110%;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+                box-shadow: 0 0 12px var(--emerald);
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.6;
+                box-shadow: 0 0 20px var(--emerald);
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- HERO SECTION -->
+    <div id="hero-canvas"></div>
+
+    <div id="hero-ui">
+        <h1 style="font-size: 0.875rem; letter-spacing: 0.4em; font-weight: bold; color: var(--emerald);">
+            EMERALD_SWARM_v2.5</h1>
+        <div
+            style="font-size: 11px; opacity: 0.7; margin-top: 0.5rem; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">
+            POPULATION: 4500 UNITS<br>
+            CORE_STATUS: <span id="core-status" style="color: var(--emerald-bright);">IDLE</span><br>
+            SYS_SYNC: <span id="hero-scroll-offset">0000</span>
+        </div>
+    </div>
+
+    <div class="hero-content" id="hero-content">
+        <div style="text-align: center;">
+            <p
+                style="font-size: 10px; letter-spacing: 0.6em; opacity: 0.4; margin-bottom: 1.5rem; animation: pulse 2s infinite; font-family: 'JetBrains Mono', monospace;">
+                INITIATING_SYSTEM_BOOT</p>
+            <h2 class="bulb-text"
+                style="font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; letter-spacing: -0.05em; margin-bottom: 2rem; font-family: 'Plus Jakarta Sans', sans-serif;">
+                &gt; DIGITAL<br>ARCHITECT
+            </h2>
+            <p style="font-size: 11px; letter-spacing: 0.3em; opacity: 0.6; font-family: 'JetBrains Mono', monospace;">
+                SCROLL PARA EXPLORAR PROYECTOS</p>
+        </div>
+    </div>
 
     <div class="system-marker">WEB_DESIGN: PREMIUM_EXPERIENCES // STATUS: AVAILABLE</div>
 
@@ -214,6 +482,84 @@
         </svg>
 
         <div id="stage"></div>
+
+        <!-- PROJECTS Section Header -->
+        <div class="section-header" id="projects-header">
+            // SECTION: PROJECTS
+        </div>
+
+        <!-- CTA SECTION -->
+        <div id="cta-section">
+            <!-- Matrix Grid Background -->
+            <div style="position: absolute; inset: 0; opacity: 0.25; pointer-events: none; z-index: 0;">
+                <div id="h-lines" style="position: absolute; inset: -100px; height: calc(100% + 200px);"></div>
+                <div id="v-lines" style="position: absolute; inset: -100px; width: calc(100% + 200px);"></div>
+                <div
+                    style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 0%, black 85%);">
+                </div>
+            </div>
+
+            <!-- Status Header -->
+            <div
+                style="margin-bottom: 2.5rem; text-align: center; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.3em; font-size: 10px; font-family: 'JetBrains Mono', monospace;">
+                <div
+                    style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <div class="glow-dot"></div>
+                    <p>STATUS: <span
+                            style="color: var(--emerald-bright); font-weight: bold;">AVAILABLE_FOR_PROJECTS</span></p>
+                </div>
+                <div
+                    style="display: flex; flex-wrap: wrap; justify-center; gap: 2rem; color: rgba(16, 185, 129, 0.5); font-weight: bold;">
+                    <span>// RESPONSE_TIME: <24H< /span>
+                            <span>// TIMEZONE: GMT-3</span>
+                            <span>// RUNTIME: STABLE</span>
+                </div>
+            </div>
+
+            <!-- Bulb Light Header -->
+            <div style="position: relative; margin-bottom: 4rem; text-align: center; padding: 0 1rem;">
+                <!-- Soft Glow Background -->
+                <div
+                    style="position: absolute; inset: -3rem; background: rgba(16, 185, 129, 0.1); filter: blur(80px); opacity: 0.4; transition: opacity 1s;">
+                </div>
+
+                <h1
+                    style="position: relative; font-size: clamp(2rem, 7vw, 5rem); font-weight: 900; letter-spacing: -0.05em; line-height: 1; user-select: none; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <!-- Shine Layer -->
+                    <span class="shine-overlay" aria-hidden="true">> READY TO START YOUR PROJECT?</span>
+
+                    <!-- Main Flickering Text -->
+                    <span class="bulb-text">
+                        > READY TO START<br style="display: block;">YOUR PROJECT?
+                    </span>
+
+                    <!-- Moving Scanline -->
+                    <div class="scanline"></div>
+                </h1>
+            </div>
+
+            <!-- Terminal Buttons -->
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; width: 100%; max-width: 56rem; padding: 0 1.5rem;">
+                <button class="terminal-btn">
+                    [SEND_EMAIL]
+                </button>
+                <button class="terminal-btn">
+                    [VIEW_GITHUB]
+                </button>
+                <button class="terminal-btn">
+                    [SCHEDULE_CALL]
+                </button>
+            </div>
+
+            <!-- System Footer -->
+            <div
+                style="position: absolute; bottom: 2.5rem; width: 100%; display: flex; justify-content: space-between; padding: 0 3rem; font-size: 9px; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.4em; font-weight: bold; font-family: 'JetBrains Mono', monospace;">
+                <div>SYS_OS: MATRIX_CORE_v4</div>
+                <div id="scroll-display">SYNC_OFFSET: [0000]</div>
+                <div style="display: none;" class="md:block">LOC: 34.6037° S, 58.3816° W</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -232,11 +578,11 @@
          * url: optional project link
          */
         const nodes = [
-            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [0, 15], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
-            { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "VENTAS_24/7", life: [15, 35], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
-            { id: 3, pos: [25, 70], text: "WEB\nAPPS", label: "EXPERIENCIAS_INTERACTIVAS", life: [35, 55], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
-            { id: 4, pos: [80, 25], text: "CORPORATE\nSITES", label: "PRESENCIA_PREMIUM", life: [55, 75], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
-            { id: 5, pos: [50, 60], text: "PORTFOLIO\nDESIGN", label: "IMPACTO_VISUAL", life: [75, 100], behavior: 1 }
+            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [10, 22], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
+            { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "VENTAS_24/7", life: [22, 34], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
+            { id: 3, pos: [25, 70], text: "WEB\nAPPS", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
+            { id: 4, pos: [70, 30], text: "CORPORATE\nSITES", label: "PRESENCIA_PREMIUM", life: [46, 58], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
+            { id: 5, pos: [50, 60], text: "PORTFOLIO\nDESIGN", label: "IMPACTO_VISUAL", life: [58, 70], behavior: 1 }
         ];
 
         // Create Text Elements (without images)
@@ -436,6 +782,241 @@
             const y = (e.clientY / window.innerHeight - 0.5) * 10;
             svgLayer.style.transform = `translate(${x}px, ${y}px)`;
             stage.style.transform = `translate(${x / 2}px, ${y / 2}px)`;
+        });
+
+        // === CTA SECTION CONTROL ===
+        const ctaSection = document.getElementById('cta-section');
+        const projectsHeader = document.getElementById('projects-header');
+        const hLinesContainer = document.getElementById('h-lines');
+        const vLinesContainer = document.getElementById('v-lines');
+        const scrollDisplay = document.getElementById('scroll-display');
+
+        // Create Matrix Grid Lines
+        const hLineCount = 30;
+        const vLineCount = 30;
+
+        for (let i = 0; i < hLineCount; i++) {
+            const hLine = document.createElement('div');
+            hLine.className = 'grid-line-h';
+            hLine.style.top = `${(100 / hLineCount) * i}%`;
+            hLinesContainer.appendChild(hLine);
+        }
+
+        for (let i = 0; i < vLineCount; i++) {
+            const vLine = document.createElement('div');
+            vLine.className = 'grid-line-v';
+            vLine.style.left = `${(100 / vLineCount) * i}%`;
+            vLinesContainer.appendChild(vLine);
+        }
+
+        // Update CTA section visibility and animations
+        function updateCTA() {
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollY / scrollMax) * 100;
+
+            console.log('Scroll Progress:', progress.toFixed(2) + '%');
+
+            // Show PROJECTS header during projects timeline (10-70%)
+            if (progress >= 10 && progress < 70) {
+                const headerProgress = (progress - 10) / 5; // Fade in over 5% (10-15%)
+                projectsHeader.style.opacity = Math.min(1, headerProgress);
+            } else {
+                projectsHeader.style.opacity = 0;
+            }
+
+            // Show CTA section at 75%+ (gap after projects end at 70%)
+            if (progress >= 75) {
+                ctaSection.classList.add('active');
+                const ctaProgress = (progress - 75) / 25; // 0 to 1 in the 75-100% range
+                ctaSection.style.opacity = Math.min(1, ctaProgress * 2); // Fade in quickly
+                console.log('CTA Active - Progress:', progress, 'Opacity:', ctaSection.style.opacity);
+            } else {
+                ctaSection.classList.remove('active');
+                ctaSection.style.opacity = 0;
+            }
+
+            // Matrix grid parallax animation
+            const hOffset = (scrollY * 0.4) % 100;
+            const vOffset = (scrollY * 0.15) % 100;
+            hLinesContainer.style.transform = `translateY(${hOffset}px)`;
+            vLinesContainer.style.transform = `translateX(${vOffset}px)`;
+
+            // Update scroll offset display
+            const paddedScroll = Math.floor(scrollY).toString().padStart(4, '0');
+            scrollDisplay.innerText = `SYNC_OFFSET: [${paddedScroll}]`;
+        }
+
+        // Wrap the original update function to include CTA updates
+        const originalUpdate = update;
+        update = function () {
+            originalUpdate();
+            updateCTA();
+        };
+
+        // Re-attach scroll listeners with the new wrapped update function
+        window.removeEventListener('scroll', originalUpdate);
+        window.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+
+        updateCTA(); // Initial run
+
+        // === HERO BOIDS SECTION ===
+        const COUNT_ACTIVE = 1500;
+        const COUNT_INDEP = 3000;
+        const TOTAL_COUNT = COUNT_ACTIVE + COUNT_INDEP;
+        const BOUNDS = 400;
+        const MAX_SPEED = 2.4;
+        const ATTRACTION_FORCE = 0.28;
+
+        let scene, camera, renderer, activeMesh, indepMesh;
+        const positions = new Float32Array(TOTAL_COUNT * 3);
+        const velocities = new Float32Array(TOTAL_COUNT * 3);
+
+        let isAttracting = false;
+        let attractionPoint = new THREE.Vector3();
+        const raycaster = new THREE.Raycaster();
+        const mouse2 = new THREE.Vector2();
+        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const dummy = new THREE.Object3D();
+        const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3();
+
+        function initBoids() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.001);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 3000);
+            camera.position.z = 800;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('hero-canvas').appendChild(renderer.domElement);
+
+            const sharedGeo = new THREE.ConeGeometry(1.2, 5.5, 3);
+            sharedGeo.rotateX(Math.PI / 2);
+            const sharedMat = new THREE.MeshPhongMaterial({
+                color: 0x10b981,
+                emissive: 0x064e3b,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            activeMesh = new THREE.InstancedMesh(sharedGeo, sharedMat, COUNT_ACTIVE);
+            indepMesh = new THREE.InstancedMesh(sharedGeo, sharedMat, COUNT_INDEP);
+            scene.add(activeMesh, indepMesh);
+
+            scene.add(new THREE.AmbientLight(0x0a220a, 2.5));
+            const pLight = new THREE.PointLight(0x10b981, 2, 1500);
+            pLight.position.set(0, 500, 400);
+            scene.add(pLight);
+
+            for (let i = 0; i < TOTAL_COUNT; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * BOUNDS * 5;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * BOUNDS * 5;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * BOUNDS * 5;
+                velocities[i * 3] = (Math.random() - 0.5) * 5;
+                velocities[i * 3 + 1] = (Math.random() - 0.5) * 5;
+                velocities[i * 3 + 2] = (Math.random() - 0.5) * 5;
+            }
+
+            window.addEventListener('pointerdown', () => {
+                isAttracting = true;
+                document.getElementById('core-status').innerText = 'CORE_REVEALED';
+                document.getElementById('core-status').style.color = '#fff';
+            });
+            window.addEventListener('pointerup', () => {
+                isAttracting = false;
+                document.getElementById('core-status').innerText = 'IDLE';
+                document.getElementById('core-status').style.color = '#10b981';
+            });
+            window.addEventListener('pointermove', e => {
+                mouse2.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse2.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            animateBoids();
+        }
+
+        function animateBoids() {
+            requestAnimationFrame(animateBoids);
+
+            raycaster.setFromCamera(mouse2, camera);
+            raycaster.ray.intersectPlane(plane, attractionPoint);
+
+            for (let i = 0; i < TOTAL_COUNT; i++) {
+                const isActive = i < COUNT_ACTIVE;
+                const accel = v3.set(0, 0, 0);
+
+                if (isActive && isAttracting) {
+                    const seek = attractionPoint.clone().sub(v2.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
+                    seek.setLength(MAX_SPEED).sub(v1.set(velocities[i * 3], velocities[i * 3 + 1], velocities[i * 3 + 2]));
+                    accel.add(seek.multiplyScalar(ATTRACTION_FORCE));
+                }
+
+                velocities[i * 3] += accel.x; velocities[i * 3 + 1] += accel.y; velocities[i * 3 + 2] += accel.z;
+                v1.set(velocities[i * 3], velocities[i * 3 + 1], velocities[i * 3 + 2]).clampLength(0, MAX_SPEED);
+                velocities[i * 3] = v1.x; velocities[i * 3 + 1] = v1.y; velocities[i * 3 + 2] = v1.z;
+
+                positions[i * 3] += velocities[i * 3];
+                positions[i * 3 + 1] += velocities[i * 3 + 1];
+                positions[i * 3 + 2] += velocities[i * 3 + 2];
+
+                const l = BOUNDS * 2.8;
+                if (Math.abs(positions[i * 3]) > l) positions[i * 3] *= -0.98;
+                if (Math.abs(positions[i * 3 + 1]) > l) positions[i * 3 + 1] *= -0.98;
+                if (Math.abs(positions[i * 3 + 2]) > l) positions[i * 3 + 2] *= -0.98;
+
+                dummy.position.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+                dummy.lookAt(positions[i * 3] + velocities[i * 3], positions[i * 3 + 1] + velocities[i * 3 + 1], positions[i * 3 + 2] + velocities[i * 3 + 2]);
+                dummy.updateMatrix();
+
+                const mesh = isActive ? activeMesh : indepMesh;
+                mesh.setMatrixAt(isActive ? i : i - COUNT_ACTIVE, dummy.matrix);
+            }
+            activeMesh.instanceMatrix.needsUpdate = true;
+            indepMesh.instanceMatrix.needsUpdate = true;
+
+            // Removed scene rotation to fix attraction point drift
+            renderer.render(scene, camera);
+        }
+
+        // Hero fade out logic
+        const heroCanvas = document.getElementById('hero-canvas');
+        const heroUI = document.getElementById('hero-ui');
+        const heroContent = document.getElementById('hero-content');
+        const heroScrollOffset = document.getElementById('hero-scroll-offset');
+
+        const originalUpdateCTA = updateCTA;
+        updateCTA = function () {
+            originalUpdateCTA();
+
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollY / scrollMax) * 100;
+
+            // Hero fades out at 0-5% (very fast fade to avoid overlap)
+            const heroFadeOut = Math.max(0, 1 - (progress / 5));
+            heroCanvas.style.opacity = heroFadeOut;
+            heroUI.style.opacity = heroFadeOut;
+            heroContent.style.opacity = heroFadeOut;
+
+            heroScrollOffset.innerText = Math.floor(scrollY).toString().padStart(4, '0');
+        };
+
+        // Initialize hero
+        if (typeof THREE !== 'undefined') {
+            initBoids();
+        }
+
+        // Resize handler for hero
+        window.addEventListener('resize', () => {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
     </script>
 </body>
