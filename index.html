@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Design Portfolio | Experiencias Digitales Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Plus+Jakarta+Sans:wght@800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --emerald: #10b981;
+            --emerald-dim: rgba(16, 185, 129, 0.1);
+            --emerald-bright: #34d399;
+        }
+
+        html,
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            height: 2000vh;
+            /* Scroll depth for timeline scrubbing */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overflow-x: hidden;
+            color: #fff;
+            cursor: crosshair;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .viewport {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #020804 0%, #000 100%);
+            overflow: hidden;
+        }
+
+        /* SVG Narrative Layer */
+        #svg-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .thread-main {
+            fill: none;
+            stroke: var(--emerald);
+            stroke-width: 1.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+            filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));
+        }
+
+        .thread-branch {
+            fill: none;
+            stroke: var(--emerald);
+            stroke-width: 1;
+            stroke-dasharray: 4 4;
+            opacity: 0.4;
+        }
+
+        .head-dot {
+            fill: #fff;
+            filter: drop-shadow(0 0 10px var(--emerald-bright));
+        }
+
+        /* Content Stage */
+        #stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .node-fragment {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: none;
+            will-change: opacity, transform, letter-spacing, filter;
+            max-width: 80vw;
+        }
+
+        .primary-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            line-height: 0.85;
+            color: #fff;
+            text-align: center;
+        }
+
+        .data-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--emerald);
+            letter-spacing: 0.4em;
+            opacity: 0.6;
+            margin-top: 15px;
+            display: block;
+            text-align: center;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1em;
+            background: var(--emerald);
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 1) 100%);
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        /* UI elements */
+        .system-marker {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--emerald);
+            opacity: 0.3;
+            letter-spacing: 2px;
+        }
+
+        /* Project Images */
+        .project-image-container {
+            position: absolute;
+            pointer-events: auto;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .project-image-link {
+            display: block;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--emerald);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3),
+                0 0 40px rgba(16, 185, 129, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .project-image-link:hover {
+            border-color: var(--emerald-bright);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5),
+                0 0 60px rgba(16, 185, 129, 0.2);
+            transform: scale(1.02);
+        }
+
+        .project-image {
+            display: block;
+            width: 100%;
+            min-width: 350px;
+            max-width: 500px;
+            height: auto;
+            opacity: 0.9;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .project-image-link:hover .project-image {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .project-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg,
+                    rgba(16, 185, 129, 0.1) 0%,
+                    transparent 50%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="system-marker">WEB_DESIGN: PREMIUM_EXPERIENCES // STATUS: AVAILABLE</div>
+
+    <div class="viewport">
+        <div class="vignette"></div>
+
+        <svg id="svg-layer">
+            <path id="main-path" class="thread-main" d=""></path>
+            <path id="branch-a" class="thread-branch" d=""></path>
+            <path id="branch-b" class="thread-branch" d=""></path>
+            <circle id="head" class="head-dot" r="3.5"></circle>
+        </svg>
+
+        <div id="stage"></div>
+    </div>
+
+    <script>
+        const stage = document.getElementById('stage');
+        const mainPath = document.getElementById('main-path');
+        const branchA = document.getElementById('branch-a');
+        const branchB = document.getElementById('branch-b');
+        const head = document.getElementById('head');
+        const svgLayer = document.getElementById('svg-layer');
+
+        /**
+         * WEB DESIGN SERVICES TIMELINE
+         * Coordinates kept in safe-zone (20% to 80%) to fit the screen perfectly.
+         * behavior: 1 (Scale), 2 (Spacing), 3 (Blur), 4 (Skew)
+         * image: optional project screenshot
+         * url: optional project link
+         */
+        const nodes = [
+            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [0, 15], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
+            { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "VENTAS_24/7", life: [15, 35], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
+            { id: 3, pos: [25, 70], text: "WEB\nAPPS", label: "EXPERIENCIAS_INTERACTIVAS", life: [35, 55], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
+            { id: 4, pos: [80, 25], text: "CORPORATE\nSITES", label: "PRESENCIA_PREMIUM", life: [55, 75], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
+            { id: 5, pos: [50, 60], text: "PORTFOLIO\nDESIGN", label: "IMPACTO_VISUAL", life: [75, 100], behavior: 1 }
+        ];
+
+        // Create Text Elements (without images)
+        const textElements = nodes.map(n => {
+            const div = document.createElement('div');
+            div.className = 'node-fragment';
+            div.style.left = `${n.pos[0]}%`;
+            div.style.top = `${n.pos[1]}%`;
+
+            div.innerHTML = `
+                <div class="primary-text" style="font-size: 8vw;"><span class="content"></span><span class="cursor"></span></div>
+                <span class="data-label"></span>
+            `;
+            stage.appendChild(div);
+            return { ...n, el: div, content: div.querySelector('.content'), labelEl: div.querySelector('.data-label'), cursor: div.querySelector('.cursor') };
+        });
+
+        // Create Image Elements separately with random positions
+        const imageElements = nodes.filter(n => n.image && n.url).map(n => {
+            const imageDiv = document.createElement('div');
+            imageDiv.className = 'project-image-container';
+
+            // Random position (avoiding edges: 15-85% range)
+            let randomX = 15 + Math.random() * 70;
+            let randomY = 15 + Math.random() * 70;
+
+            // Ensure image doesn't overlap with its own text
+            const textX = n.pos[0];
+            const textY = n.pos[1];
+
+            // Calculate distance between image and text
+            const distance = Math.sqrt(Math.pow(randomX - textX, 2) + Math.pow(randomY - textY, 2));
+
+            // If too close (within 30% of screen), reposition to opposite side
+            if (distance < 30) {
+                // Move to opposite quadrant
+                randomX = textX > 50 ? 20 + Math.random() * 25 : 60 + Math.random() * 25;
+                randomY = textY > 50 ? 20 + Math.random() * 25 : 60 + Math.random() * 25;
+            }
+
+            imageDiv.style.left = `${randomX}%`;
+            imageDiv.style.top = `${randomY}%`;
+
+            imageDiv.innerHTML = `
+                <a href="${n.url}" class="project-image-link" target="_blank" rel="noopener noreferrer">
+                    <img src="${n.image}" alt="${n.text.replace('\n', ' ')}" class="project-image">
+                    <div class="project-overlay"></div>
+                </a>
+            `;
+            stage.appendChild(imageDiv);
+            return { ...n, imageEl: imageDiv };
+        });
+
+        // Robust Orthogonal path logic: strictly horizontal then vertical
+        function getOrthogonal(x1, y1, x2, y2, p) {
+            let midX, midY;
+            if (p <= 0.5) {
+                midX = x1 + (x2 - x1) * (p * 2);
+                midY = y1;
+            } else {
+                midX = x2;
+                midY = y1 + (y2 - y1) * ((p - 0.5) * 2);
+            }
+            return { x: midX, y: midY, isCorner: p > 0.5 };
+        }
+
+        function update() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            svgLayer.setAttribute('width', w);
+            svgLayer.setAttribute('height', h);
+
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollY / scrollMax) * 100;
+
+            let dMain = "";
+            let dBA = "";
+            let dBB = "";
+            let hX, hY;
+
+            const tailLength = 15;
+            const tStart = Math.max(0, progress - tailLength);
+
+            // DRAW MAIN NARRATIVE THREAD
+            for (let i = 0; i < nodes.length - 1; i++) {
+                const n1 = nodes[i], n2 = nodes[i + 1];
+                const sStart = Math.max(tStart, n1.life[0]);
+                const sEnd = Math.min(progress, n2.life[0]);
+
+                if (sStart < sEnd) {
+                    const p1 = (sStart - n1.life[0]) / (n2.life[0] - n1.life[0]);
+                    const p2 = (sEnd - n1.life[0]) / (n2.life[0] - n1.life[0]);
+
+                    const x1 = n1.pos[0] * w / 100, y1 = n1.pos[1] * h / 100;
+                    const x2 = n2.pos[0] * w / 100, y2 = n2.pos[1] * h / 100;
+
+                    const pA = getOrthogonal(x1, y1, x2, y2, p1);
+                    const pB = getOrthogonal(x1, y1, x2, y2, p2);
+
+                    if (dMain === "") dMain = `M ${pA.x} ${pA.y}`;
+                    if (!pA.isCorner && pB.isCorner) dMain += ` L ${x2} ${y1}`;
+                    dMain += ` L ${pB.x} ${pB.y}`;
+
+                    if (sEnd === progress) { hX = pB.x; hY = pB.y; }
+
+                    // BRANCHING CIRCUITRY (90-deg branching)
+                    if (n1.hasBranch && progress > n1.life[0]) {
+                        const bProg = Math.min((progress - n1.life[0]) / 8, 1);
+                        const bDist = Math.min(w * 0.1, 100);
+
+                        // Branch A (sideways then down)
+                        const bA_End = getOrthogonal(x1, y1, x1 - bDist, y1 + bDist, bProg);
+                        dBA += `M ${x1} ${y1} L ${x1 - bDist} ${y1} L ${x1 - bDist} ${bA_End.y}`;
+
+                        // Branch B (sideways then up)
+                        const bB_End = getOrthogonal(x1, y1, x1 + bDist, y1 - bDist, bProg);
+                        dBB += `M ${x1} ${y1} L ${x1 + bDist} ${y1} L ${x1 + bDist} ${bB_End.y}`;
+                    }
+                }
+            }
+
+            mainPath.setAttribute('d', dMain);
+            branchA.setAttribute('d', dBA);
+            branchB.setAttribute('d', dBB);
+
+            if (hX !== undefined) {
+                head.setAttribute('cx', hX); head.setAttribute('cy', hY);
+                head.style.opacity = 1;
+            } else { head.style.opacity = 0; }
+
+            // DISCOVER TEXT
+            textElements.forEach(node => {
+                const isActive = progress >= node.life[0] && progress <= node.life[1];
+                if (isActive) {
+                    node.el.style.display = 'block';
+                    const local = (progress - node.life[0]) / (node.life[1] - node.life[0]);
+
+                    // Typing Animation (Keyboard)
+                    const typeP = Math.min(local / 0.4, 1);
+                    const chars = Math.floor(node.text.length * typeP);
+                    node.content.innerText = node.text.substring(0, chars);
+                    node.cursor.style.display = typeP < 1 ? 'inline-block' : 'none';
+                    node.labelEl.innerText = typeP > 0.8 ? node.label : "";
+
+                    // Opacity Transition
+                    let op = 1;
+                    if (local < 0.2) op = local / 0.2;
+                    else if (local > 0.8) op = 1 - (local - 0.8) / 0.2;
+                    node.el.style.opacity = op;
+
+                    // Heterogeneous Patterns (No Vertical, No Rotation)
+                    const transform = [];
+                    node.el.style.letterSpacing = "0em";
+                    node.el.style.filter = "none";
+
+                    if (node.behavior === 1) { // Pulsing scale
+                        transform.push(`scale(${0.8 + local * 0.3})`);
+                    } else if (node.behavior === 2) { // Tracking reveal
+                        node.el.style.letterSpacing = `${(1 - local) * 0.7}em`;
+                    } else if (node.behavior === 3) { // Blur discovery
+                        node.el.style.filter = `blur(${(1 - local) * 12}px)`;
+                    } else if (node.behavior === 4) { // Skew
+                        transform.push(`skewX(${(1 - local) * 15}deg)`);
+                    }
+
+                    node.el.style.transform = `translate(-50%, -50%) ${transform.join(' ')}`;
+                } else {
+                    node.el.style.display = 'none';
+                }
+            });
+
+            // Animate Images independently
+            imageElements.forEach(imgNode => {
+                const isActive = progress >= imgNode.life[0] && progress <= imgNode.life[1];
+                if (isActive) {
+                    const local = (progress - imgNode.life[0]) / (imgNode.life[1] - imgNode.life[0]);
+                    const typeP = Math.min(local / 0.4, 1);
+
+                    // Image appears earlier - at 60% of typing instead of 100%
+                    const imageDelay = 0.25; // Start showing at 25% instead of 50%
+                    const imageP = Math.max(0, Math.min(1, (local - imageDelay) / (1 - imageDelay)));
+                    imgNode.imageEl.style.opacity = typeP >= 0.6 ? imageP : 0; // Show when typing is 60% done
+                } else {
+                    imgNode.imageEl.style.opacity = 0;
+                }
+            });
+        }
+
+        window.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+        update(); // Initial run
+
+        // Subtle Mouse Depth
+        window.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 10;
+            const y = (e.clientY / window.innerHeight - 0.5) * 10;
+            svgLayer.style.transform = `translate(${x}px, ${y}px)`;
+            stage.style.transform = `translate(${x / 2}px, ${y / 2}px)`;
+        });
+    </script>
+</body>
+
+</html>
