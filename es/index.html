@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -7,8 +7,8 @@
     <title>Web Design Portfolio | Experiencias Digitales Premium</title>
 
     <!-- Hreflang tags for multilingual SEO -->
-    <link rel="alternate" hreflang="en" href="https://noxsites.com/" />
     <link rel="alternate" hreflang="es" href="https://noxsites.com/es/" />
+    <link rel="alternate" hreflang="en" href="https://noxsites.com/" />
     <link rel="alternate" hreflang="x-default" href="https://noxsites.com/" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -135,7 +135,8 @@
             pointer-events: none;
             display: none;
             will-change: opacity, transform, letter-spacing, filter;
-            max-width: 80vw;
+            max-width: 90vw;
+            /* Aumentado para textos en español */
             z-index: 100;
             /* Siempre por encima de las imágenes */
         }
@@ -237,7 +238,7 @@
         .project-image {
             display: block;
             width: 100%;
-            min-width: 300px;
+            min-width: 450px;
             max-width: 500px;
             height: auto;
             opacity: 1;
@@ -514,11 +515,11 @@
                 &gt; DIGITAL<br>ARCHITECT
             </h2>
             <p style="font-size: 11px; letter-spacing: 0.3em; opacity: 0.6; font-family: 'JetBrains Mono', monospace;">
-                SCROLL PARA EXPLORAR PROYECTOS</p>
+                DESPLÁZATE PARA EXPLORAR PROYECTOS</p>
         </div>
     </div>
 
-    <div class="system-marker">WEB_DESIGN: PREMIUM_EXPERIENCES // STATUS: AVAILABLE</div>
+    <div class="system-marker">DISEÑO_WEB: EXPERIENCIAS_PREMIUM // ESTADO: DISPONIBLE</div>
 
     <div class="viewport">
         <div class="vignette"></div>
@@ -534,7 +535,7 @@
 
         <!-- PROJECTS Section Header -->
         <div class="section-header" id="projects-header">
-            // SECTION: PROJECTS
+            // SECCIÓN: PROYECTOS
         </div>
 
         <!-- CTA SECTION -->
@@ -554,14 +555,15 @@
                 <div
                     style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
                     <div class="glow-dot"></div>
-                    <p>STATUS: <span
-                            style="color: var(--emerald-bright); font-weight: bold;">AVAILABLE_FOR_PROJECTS</span></p>
+                    <p>ESTADO: <span
+                            style="color: var(--emerald-bright); font-weight: bold;">DISPONIBLE_PARA_PROYECTOS</span>
+                    </p>
                 </div>
                 <div
                     style="display: flex; flex-wrap: wrap; justify-center; gap: 2rem; color: rgba(16, 185, 129, 0.5); font-weight: bold;">
-                    <span>// RESPONSE_TIME: <24H< /span>
-                            <span>// TIMEZONE: GMT-3</span>
-                            <span>// RUNTIME: STABLE</span>
+                    <span>// TIEMPO_RESPUESTA: <24H< /span>
+                            <span>// ZONA_HORARIA: GMT-3</span>
+                            <span>// SISTEMA: ESTABLE</span>
                 </div>
             </div>
 
@@ -575,11 +577,11 @@
                 <h1
                     style="position: relative; font-size: clamp(2rem, 7vw, 5rem); font-weight: 900; letter-spacing: -0.05em; line-height: 1; user-select: none; font-family: 'Plus Jakarta Sans', sans-serif;">
                     <!-- Shine Layer -->
-                    <span class="shine-overlay" aria-hidden="true">> READY TO START YOUR PROJECT?</span>
+                    <span class="shine-overlay" aria-hidden="true">> ¿LISTO PARA COMENZAR TU PROYECTO?</span>
 
                     <!-- Main Flickering Text -->
                     <span class="bulb-text">
-                        > READY TO START<br style="display: block;">YOUR PROJECT?
+                        > ¿LISTO PARA COMENZAR<br style="display: block;">TU PROYECTO?
                     </span>
 
                     <!-- Moving Scanline -->
@@ -591,13 +593,13 @@
             <div
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; width: 100%; max-width: 56rem; padding: 0 1.5rem; pointer-events: auto;">
                 <button class="terminal-btn">
-                    [SEND_EMAIL]
+                    [ENVIAR_EMAIL]
                 </button>
                 <button class="terminal-btn">
-                    [MORE_INFO]
+                    [MÁS_INFO]
                 </button>
                 <button class="terminal-btn">
-                    [SCHEDULE_CALL]
+                    [AGENDAR_LLAMADA]
                 </button>
             </div>
 
@@ -628,10 +630,10 @@
          */
         const nodes = [
             { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [6, 18], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
-            { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "VENTAS_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
-            { id: 3, pos: [25, 70], text: "WEB\nAPPS", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
-            { id: 4, pos: [70, 30], text: "CORPORATE\nSITES", label: "PRESENCIA_PREMIUM", life: [44, 56], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
-            { id: 5, pos: [50, 60], text: "PORTFOLIO\nDESIGN", label: "IMPACTO_VISUAL", life: [58, 70], behavior: 1 }
+            { id: 2, pos: [70, 45], text: "PLATAFORMAS\nE-COMMERCE", label: "VENTAS_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
+            { id: 3, pos: [25, 70], text: "APLICACIONES\nWEB", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
+            { id: 4, pos: [70, 30], text: "SITIOS\nCORPORATIVOS", label: "PRESENCIA_PREMIUM", life: [44, 56], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
+            { id: 5, pos: [50, 60], text: "DISEÑO\nPORTFOLIO", label: "IMPACTO_VISUAL", life: [58, 70], behavior: 1 }
         ];
 
         // Create Text Elements (without images)
@@ -673,9 +675,9 @@
                     randomY = textY > (topMargin + 15) ? (topMargin + 5) : 85;
                 }
             } else {
-                // Desktop logic: More freedom but avoid edges (15-85%)
-                const marginX = 15;
-                const marginY_bottom = 15;
+                // Desktop logic: More freedom but avoid edges (20-80% for safety)
+                const marginX = 20; // Aumentado de 15 a 20 para más seguridad
+                const marginY_bottom = 20;
                 randomX = marginX + Math.random() * (100 - marginX * 2);
                 randomY = topMargin + Math.random() * (100 - topMargin - marginY_bottom);
 
