@@ -71,17 +71,20 @@
             background-color: #000;
             margin: 0;
             padding: 0;
-            height: 4000vh;
-            /* Scroll depth for timeline scrubbing */
+            height: 100vh;
+            /* Controlled scroll via JavaScript */
             scrollbar-width: none;
             -ms-overflow-style: none;
-            overflow-x: hidden;
+            overflow: hidden;
+            /* Prevent native scroll */
             color: #fff;
             cursor: crosshair;
             /* Bloqueo de selección de texto para no romper los boids */
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
+            touch-action: none;
+            /* Prevent mobile scroll */
         }
 
         body::-webkit-scrollbar {
@@ -93,6 +96,8 @@
             inset: 0;
             background: radial-gradient(circle at center, #020804 0%, #000 100%);
             overflow: hidden;
+            pointer-events: none;
+            /* Allow clicks to pass through to CTA */
         }
 
         /* SVG Narrative Layer */
@@ -633,7 +638,7 @@
         const nodes = [
             { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "MAXIMUM_CONVERSION", life: [6, 18], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
             { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "SALES_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
-            { id: 3, pos: [25, 70], text: "WEB\nAPPS", label: "INTERACTIVE_EXPERIENCES", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
+            { id: 3, pos: [35, 70], text: "WEB\nAPPS", label: "INTERACTIVE_EXPERIENCES", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
             { id: 4, pos: [70, 30], text: "CORPORATE\nSITES", label: "PREMIUM_PRESENCE", life: [44, 56], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
             { id: 5, pos: [50, 60], text: "PORTFOLIO\nDESIGN", label: "VISUAL_IMPACT", life: [58, 70], behavior: 1 }
         ];
@@ -719,15 +724,180 @@
             return { x: midX, y: midY, isCorner: p > 0.5 };
         }
 
+        // === PAGINATED SCROLL SYSTEM ===
+        const SECTIONS = [
+            { id: 0, name: 'HERO', progress: 0 },
+            { id: 1, name: 'LANDING_PAGES', progress: 12 },
+            { id: 2, name: 'E_COMMERCE', progress: 23 },
+            { id: 3, name: 'WEB_APPS', progress: 35 },
+            { id: 4, name: 'CORPORATE_SITES', progress: 50 },
+            { id: 5, name: 'PORTFOLIO_DESIGN', progress: 64 },
+            { id: 6, name: 'CTA', progress: 87.5 }
+        ];
+
+        let currentSection = 0;
+        let isAnimating = false;
+        let virtualProgress = 0; // Simulated scroll progress (0-100)
+        let ctaScrollOffset = 0; // Extra scroll offset within CTA section
+        let targetCtaScrollOffset = 0; // Target offset for smooth animation
+        const TRANSITION_DURATION = 1500; // ms - Slower for better readability
+        const CTA_SCROLL_INCREMENT = 5; // How much to increment per scroll in CTA
+        const CTA_ANIMATION_SPEED = 0.15; // Lerp speed for smooth animation
+
+        // Easing function for smooth transitions
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // Smooth lerp for CTA offset
+        function animateCtaOffset() {
+            if (Math.abs(targetCtaScrollOffset - ctaScrollOffset) > 0.01) {
+                ctaScrollOffset += (targetCtaScrollOffset - ctaScrollOffset) * CTA_ANIMATION_SPEED;
+                update();
+                requestAnimationFrame(animateCtaOffset);
+            } else {
+                ctaScrollOffset = targetCtaScrollOffset;
+            }
+        }
+
+        // Animate to a target section
+        function animateToSection(targetSection) {
+            if (isAnimating || targetSection < 0 || targetSection >= SECTIONS.length) return;
+            if (targetSection === currentSection) return;
+
+            isAnimating = true;
+            const startProgress = virtualProgress;
+            const endProgress = SECTIONS[targetSection].progress;
+            const startTime = performance.now();
+
+            // Reset CTA scroll offset when leaving CTA
+            if (currentSection === SECTIONS.length - 1 && targetSection !== SECTIONS.length - 1) {
+                ctaScrollOffset = 0;
+                targetCtaScrollOffset = 0;
+            }
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
+                const easedProgress = easeInOutCubic(progress);
+
+                virtualProgress = startProgress + (endProgress - startProgress) * easedProgress;
+                update(); // Update all animations
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentSection = targetSection;
+                    virtualProgress = endProgress;
+                    isAnimating = false;
+                    update();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Navigate to next/previous section
+        function goToNextSection() {
+            // If in CTA section, increment scroll offset instead of changing section
+            if (currentSection === SECTIONS.length - 1) {
+                targetCtaScrollOffset += CTA_SCROLL_INCREMENT;
+                animateCtaOffset();
+                return;
+            }
+            animateToSection(currentSection + 1);
+        }
+
+        function goToPreviousSection() {
+            // If in CTA section with scroll offset, decrement it first
+            if (currentSection === SECTIONS.length - 1 && targetCtaScrollOffset > 0) {
+                targetCtaScrollOffset = Math.max(0, targetCtaScrollOffset - CTA_SCROLL_INCREMENT);
+                animateCtaOffset();
+                return;
+            }
+            animateToSection(currentSection - 1);
+        }
+
+        // Desktop: Mouse Wheel
+        let wheelTimeout;
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (isAnimating) return;
+
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                if (e.deltaY > 0) {
+                    goToNextSection();
+                } else {
+                    goToPreviousSection();
+                }
+            }, 50); // Small debounce to prevent multiple triggers
+        }, { passive: false });
+
+        // Mobile: Touch Swipe
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].clientY;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            if (isAnimating) return;
+            const swipeDistance = touchStartY - touchEndY;
+            const minSwipeDistance = 50; // Minimum swipe distance in pixels
+
+            if (Math.abs(swipeDistance) < minSwipeDistance) return;
+
+            if (swipeDistance > 0) {
+                // Swipe up - go to next section
+                goToNextSection();
+            } else {
+                // Swipe down - go to previous section
+                goToPreviousSection();
+            }
+        }
+
+        // Keyboard Navigation
+        window.addEventListener('keydown', (e) => {
+            if (isAnimating) return;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'PageDown':
+                case ' ': // Space
+                    e.preventDefault();
+                    goToNextSection();
+                    break;
+                case 'ArrowUp':
+                case 'PageUp':
+                    e.preventDefault();
+                    goToPreviousSection();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    animateToSection(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    animateToSection(SECTIONS.length - 1);
+                    break;
+            }
+        });
+
+        // Update function now uses virtualProgress instead of real scroll
         function update() {
             const w = window.innerWidth;
             const h = window.innerHeight;
             svgLayer.setAttribute('width', w);
             svgLayer.setAttribute('height', h);
 
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = (scrollY / scrollMax) * 100;
+            const progress = virtualProgress; // Use virtual progress instead of scroll position
 
             let dMain = "";
             let dBA = "";
@@ -813,8 +983,9 @@
                         transform.push(`scale(${0.8 + local * 0.3})`);
                     } else if (node.behavior === 2) { // Tracking reveal
                         node.el.style.letterSpacing = `${(1 - local) * 0.7}em`;
-                    } else if (node.behavior === 3) { // Blur discovery
-                        node.el.style.filter = `blur(${(1 - local) * 12}px)`;
+                    } else if (node.behavior === 3) { // Blur discovery - fast fade
+                        const blurProgress = Math.min(local / 0.2, 1); // Complete blur in first 20%
+                        node.el.style.filter = `blur(${(1 - blurProgress) * 12}px)`;
                     } else if (node.behavior === 4) { // Skew
                         transform.push(`skewX(${(1 - local) * 15}deg)`);
                     }
@@ -843,7 +1014,6 @@
             });
         }
 
-        window.addEventListener('scroll', update);
         window.addEventListener('resize', update);
         update(); // Initial run
 
@@ -882,11 +1052,7 @@
 
         // Update CTA section visibility and animations
         function updateCTA() {
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = (scrollY / scrollMax) * 100;
-
-            console.log('Scroll Progress:', progress.toFixed(2) + '%');
+            const progress = virtualProgress; // Use virtual progress
 
             // Show PROJECTS header during projects timeline (6-70%)
             if (progress >= 6 && progress < 70) {
@@ -901,20 +1067,24 @@
                 ctaSection.classList.add('active');
                 const ctaProgress = (progress - 75) / 25; // 0 to 1 in the 75-100% range
                 ctaSection.style.opacity = Math.min(1, ctaProgress * 2); // Fade in quickly
-                console.log('CTA Active - Progress:', progress, 'Opacity:', ctaSection.style.opacity);
             } else {
                 ctaSection.classList.remove('active');
                 ctaSection.style.opacity = 0;
             }
 
-            // Matrix grid parallax animation
-            const hOffset = (scrollY * 0.4) % 100;
-            const vOffset = (scrollY * 0.15) % 100;
+            // Matrix grid parallax animation with continuous movement in CTA
+            let scrollForParallax = (progress / 100) * 4000;
+
+            // Add CTA scroll offset for continuous grid movement (smooth lerp animation)
+            scrollForParallax += ctaScrollOffset * 100; // Smooth, fluid movement
+
+            const hOffset = (scrollForParallax * 0.4) % 100;
+            const vOffset = (scrollForParallax * 0.15) % 100;
             hLinesContainer.style.transform = `translateY(${hOffset}px)`;
             vLinesContainer.style.transform = `translateX(${vOffset}px)`;
 
             // Update scroll offset display
-            const paddedScroll = Math.floor(scrollY).toString().padStart(4, '0');
+            const paddedScroll = Math.floor(scrollForParallax).toString().padStart(4, '0');
             scrollDisplay.innerText = `SYNC_OFFSET: [${paddedScroll}]`;
         }
 
@@ -924,11 +1094,6 @@
             originalUpdate();
             updateCTA();
         };
-
-        // Re-attach scroll listeners with the new wrapped update function
-        window.removeEventListener('scroll', originalUpdate);
-        window.addEventListener('scroll', update);
-        window.addEventListener('resize', update);
 
         updateCTA(); // Initial run
 
@@ -1020,7 +1185,10 @@
                 const isActive = i < COUNT_ACTIVE;
                 const accel = v3.set(0, 0, 0);
 
-                if (isActive && isAttracting) {
+                // Disable attraction in projects section (6% - 70%)
+                const inProjectsSection = virtualProgress >= 6 && virtualProgress < 70;
+
+                if (isActive && isAttracting && !inProjectsSection) {
                     const seek = attractionPoint.clone().sub(v2.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
                     seek.setLength(MAX_SPEED).sub(v1.set(velocities[i * 3], velocities[i * 3 + 1], velocities[i * 3 + 2]));
                     accel.add(seek.multiplyScalar(ATTRACTION_FORCE));
@@ -1063,9 +1231,7 @@
         updateCTA = function () {
             originalUpdateCTA();
 
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = (scrollY / scrollMax) * 100;
+            const progress = virtualProgress; // Use virtual progress
 
             // --- Lógica Persistente de Boids ---
             if (progress < 6) {
@@ -1097,7 +1263,9 @@
             heroUI.style.opacity = uiFade;
             heroContent.style.opacity = uiFade;
 
-            heroScrollOffset.innerText = Math.floor(scrollY).toString().padStart(4, '0');
+            // Simulate scroll for display
+            const scrollSimulation = (progress / 100) * 4000;
+            heroScrollOffset.innerText = Math.floor(scrollSimulation).toString().padStart(4, '0');
         };
 
         // Initialize hero
