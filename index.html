@@ -567,10 +567,10 @@
                             style="color: var(--emerald-bright); font-weight: bold;">AVAILABLE_FOR_PROJECTS</span></p>
                 </div>
                 <div
-                    style="display: flex; flex-wrap: wrap; justify-center; gap: 2rem; color: rgba(16, 185, 129, 0.5); font-weight: bold;">
-                    <span>// RESPONSE_TIME: <24H< /span>
-                            <span>// TIMEZONE: GMT-3</span>
-                            <span>// RUNTIME: STABLE</span>
+                    style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; color: rgba(16, 185, 129, 0.5); font-weight: bold;">
+                    <span>// RESPONSE_TIME: &lt;24H</span>
+                    <span>// TIMEZONE: GMT-3</span>
+                    <span>// RUNTIME: STABLE</span>
                 </div>
             </div>
 
@@ -615,7 +615,7 @@
                 style="position: absolute; bottom: 2.5rem; width: 100%; display: flex; justify-content: space-between; padding: 0 3rem; font-size: 9px; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.4em; font-weight: bold; font-family: 'JetBrains Mono', monospace;">
                 <div>SYS_OS: MATRIX_CORE_v4</div>
                 <div id="scroll-display">SYNC_OFFSET: [0000]</div>
-                <div style="display: none;" class="md:block">LOC: 34.6037° S, 58.3816° W</div>
+                <div class="hidden md:block">LOC: 34.6037° S, 58.3816° W</div>
             </div>
         </div>
     </div>
@@ -740,13 +740,30 @@
         let virtualProgress = 0; // Simulated scroll progress (0-100)
         let ctaScrollOffset = 0; // Extra scroll offset within CTA section
         let targetCtaScrollOffset = 0; // Target offset for smooth animation
+        let isAutoAdvancing = false; // Flag for auto-advance in projects
         const TRANSITION_DURATION = 1500; // ms - Slower for better readability
         const CTA_SCROLL_INCREMENT = 5; // How much to increment per scroll in CTA
         const CTA_ANIMATION_SPEED = 0.15; // Lerp speed for smooth animation
+        const AUTO_ADVANCE_SPEED = 0.015; // Very slow auto-advance in projects section
 
         // Easing function for smooth transitions
         function easeInOutCubic(t) {
             return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // Auto-advance in projects section
+        function autoAdvanceProjects() {
+            if (isAutoAdvancing && currentSection >= 1 && currentSection <= 5) {
+                // Only auto-advance within current section bounds
+                const currentSectionData = SECTIONS[currentSection];
+                const nextSectionData = SECTIONS[currentSection + 1];
+
+                if (nextSectionData && virtualProgress < nextSectionData.progress - 0.5) {
+                    virtualProgress += AUTO_ADVANCE_SPEED;
+                    update();
+                }
+                requestAnimationFrame(autoAdvanceProjects);
+            }
         }
 
         // Smooth lerp for CTA offset
@@ -766,6 +783,7 @@
             if (targetSection === currentSection) return;
 
             isAnimating = true;
+            isAutoAdvancing = false; // Stop auto-advance during transition
             const startProgress = virtualProgress;
             const endProgress = SECTIONS[targetSection].progress;
             const startTime = performance.now();
@@ -791,6 +809,12 @@
                     virtualProgress = endProgress;
                     isAnimating = false;
                     update();
+
+                    // Start auto-advance if in projects section (1-5)
+                    if (currentSection >= 1 && currentSection <= 5) {
+                        isAutoAdvancing = true;
+                        autoAdvanceProjects();
+                    }
                 }
             }
 
