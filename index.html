@@ -246,8 +246,11 @@
         .project-image {
             display: block;
             width: 100%;
-            min-width: 300px;
-            max-width: 500px;
+            min-width: 450px;
+            max-width: 600px;
+            max-height: 70vh;
+            object-fit: cover;
+            object-position: top;
             height: auto;
             opacity: 1;
             transition: opacity 0.4s ease, transform 0.4s ease;
@@ -682,19 +685,25 @@
                     randomY = textY > (topMargin + 15) ? (topMargin + 5) : 85;
                 }
             } else {
-                // Desktop logic: More freedom but avoid edges (15-85%)
-                const marginX = 15;
-                const marginY_bottom = 15;
+                // Desktop logic: More aggressive safety margins for larger images
+                // Assuming max-width 600px and max-height 70vh
+                const safeX = (320 / window.innerWidth) * 100;
+                const safeY = 40; // 40% margin for vertical safety (top/bottom)
+
+                const marginX = Math.max(safeX, 25);
+                const marginY_bottom = safeY;
+                const effectiveTopMargin = 40; // Keep away from title/header
+
                 randomX = marginX + Math.random() * (100 - marginX * 2);
-                randomY = topMargin + Math.random() * (100 - topMargin - marginY_bottom);
+                randomY = effectiveTopMargin + Math.random() * (100 - effectiveTopMargin - marginY_bottom);
 
                 // Diagonal safety distance logic for desktop
                 const textX = n.pos[0];
                 const textY = n.pos[1];
                 let distance = Math.sqrt(Math.pow(randomX - textX, 2) + Math.pow(randomY - textY, 2));
-                if (distance < 45) {
+                if (distance < 40) {
                     randomX = textX > 50 ? marginX : (100 - marginX);
-                    randomY = textY > 50 ? topMargin : (100 - marginY_bottom);
+                    randomY = textY > 50 ? effectiveTopMargin : (100 - marginY_bottom);
                 }
             }
 
