@@ -814,6 +814,12 @@
             display: none;
         }
 
+        @media (max-width: 767px) {
+            .hidden-mobile {
+                display: none;
+            }
+        }
+
         @media (min-width: 768px) {
             .md\:block {
                 display: block;
@@ -895,8 +901,8 @@
                 <div
                     style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; color: rgba(16, 185, 129, 0.5); font-weight: bold;">
                     <span>// TIEMPO_RESPUESTA: &lt;24H</span>
-                    <span>// ZONA_HORARIA: GMT-3</span>
-                    <span>// SISTEMA: ESTABLE</span>
+                    <span class="hidden-mobile">// ZONA_HORARIA: GMT-3</span>
+                    <span class="hidden-mobile">// SISTEMA: ESTABLE</span>
                 </div>
             </div>
 
