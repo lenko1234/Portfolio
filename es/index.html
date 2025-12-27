@@ -9,6 +9,8 @@
         content="Portfolio de diseño web profesional. Landing pages, plataformas e-commerce, aplicaciones web y sitios corporativos con tecnología de vanguardia y animaciones impactantes.">
     <meta name="keywords"
         content="diseño web, portfolio, landing pages, e-commerce, desarrollo web, experiencias digitales">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
 
     <link rel="icon" type="image/png" href="../favicon.png">
     <link rel="apple-touch-icon" href="../favicon.png">
@@ -18,11 +20,76 @@
     <link rel="alternate" hreflang="en" href="https://noxsites.com/" />
     <link rel="alternate" hreflang="x-default" href="https://noxsites.com/" />
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DNS prefetch for older browsers -->
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+
+    <!-- Preconnect to external origins for faster resource loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Load Three.js asynchronously to prevent render blocking -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" async defer></script>
+
+    <!-- Load Tailwind CSS asynchronously -->
+    <script src="https://cdn.tailwindcss.com" async defer></script>
+
+    <!-- Load Google Fonts with font-display: swap for better performance -->
     <link
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Plus+Jakarta+Sans:wght@800&display=swap"
-        rel="stylesheet">
+        rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Plus+Jakarta+Sans:wght@800&display=swap"
+            rel="stylesheet">
+    </noscript>
+
+    <!-- Critical CSS for above-the-fold content -->
+    <style>
+        :root {
+            --emerald: #10b981;
+            --emerald-dim: rgba(16, 185, 129, 0.1);
+            --emerald-bright: #34d399
+        }
+
+        html,
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            overflow-x: hidden
+        }
+
+        #hero-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1
+        }
+
+        .hero-content {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2
+        }
+
+        .viewport {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #020804 0%, #000 100%);
+            overflow: hidden
+        }
+    </style>
     <style>
         :root {
             --emerald: #10b981;
@@ -813,7 +880,7 @@
             const imageDiv = document.createElement('div');
             imageDiv.className = 'project-image-container';
 
-            const isMobile = window.innerWidth < 768;
+            const isMobile = cachedWidth < 768;
 
             // Random position logic: centered on X for mobile, random on desktop
             let randomX, randomY;
@@ -834,7 +901,7 @@
             } else {
                 // Desktop logic: More aggressive safety margins for larger images
                 // Assuming max-width 600px and max-height 70vh
-                const safeX = (320 / window.innerWidth) * 100;
+                const safeX = (320 / cachedWidth) * 100;
                 const safeY = 40; // 40% margin for vertical safety (top/bottom)
 
                 const marginX = Math.max(safeX, 25);
@@ -857,9 +924,24 @@
             imageDiv.style.left = `${randomX}%`;
             imageDiv.style.top = `${randomY}%`;
 
+            // Create responsive WebP images with PNG fallback
+            const imageName = n.image.replace('../assets/', '').replace('.png', '');
             imageDiv.innerHTML = `
                 <a href="${n.url}" class="project-image-link" target="_blank" rel="noopener noreferrer">
-                    <img src="${n.image}" alt="${n.text.replace('\n', ' ')}" class="project-image">
+                    <picture>
+                        <source 
+                            type="image/webp"
+                            srcset="../assets/${imageName}-small.webp 613w,
+                                    ../assets/${imageName}-medium.webp 900w,
+                                    ../assets/${imageName}-large.webp 1334w"
+                            sizes="(max-width: 768px) 85vw, 600px">
+                        <img 
+                            src="${n.image}" 
+                            alt="${n.text.replace('\n', ' ')}" 
+                            class="project-image"
+                            loading="lazy"
+                            decoding="async">
+                    </picture>
                     <div class="project-overlay"></div>
                 </a>
             `;
@@ -1075,9 +1157,13 @@
         });
 
         // Update function now uses virtualProgress instead of real scroll
+        // Cache window dimensions to avoid forced reflow
+        let cachedWidth = window.innerWidth;
+        let cachedHeight = window.innerHeight;
+
         function update() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
+            const w = cachedWidth;
+            const h = cachedHeight;
             svgLayer.setAttribute('width', w);
             svgLayer.setAttribute('height', h);
 
@@ -1219,13 +1305,17 @@
             if (heroUIEl) heroUIEl.style.opacity = heroFade;
         }
 
-        window.addEventListener('resize', update);
+        window.addEventListener('resize', () => {
+            cachedWidth = window.innerWidth;
+            cachedHeight = window.innerHeight;
+            update();
+        });
         update(); // Initial run
 
         // Subtle Mouse Depth
         window.addEventListener('mousemove', (e) => {
-            const x = (e.clientX / window.innerWidth - 0.5) * 10;
-            const y = (e.clientY / window.innerHeight - 0.5) * 10;
+            const x = (e.clientX / cachedWidth - 0.5) * 10;
+            const y = (e.clientY / cachedHeight - 0.5) * 10;
             svgLayer.style.transform = `translate(${x}px, ${y}px)`;
             stage.style.transform = `translate(${x / 2}px, ${y / 2}px)`;
         });
@@ -1326,11 +1416,11 @@
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x000000, 0.001);
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 3000);
+            camera = new THREE.PerspectiveCamera(60, cachedWidth / cachedHeight, 1, 3000);
             camera.position.z = 800;
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(cachedWidth, cachedHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('hero-canvas').appendChild(renderer.domElement);
 
@@ -1373,8 +1463,8 @@
                 document.getElementById('core-status').style.color = '#10b981';
             });
             window.addEventListener('pointermove', e => {
-                mouse2.x = (e.clientX / window.innerWidth) * 2 - 1;
-                mouse2.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                mouse2.x = (e.clientX / cachedWidth) * 2 - 1;
+                mouse2.y = -(e.clientY / cachedHeight) * 2 + 1;
             });
 
             animateBoids();
@@ -1484,17 +1574,23 @@
             heroScrollOffset.innerText = Math.floor(scrollSimulation).toString().padStart(4, '0');
         };
 
-        // Initialize hero
-        if (typeof THREE !== 'undefined') {
-            initBoids();
+        // Initialize hero - wait for Three.js to load
+        function initHeroWhenReady() {
+            if (typeof THREE !== 'undefined') {
+                initBoids();
+            } else {
+                // Wait for Three.js to load
+                setTimeout(initHeroWhenReady, 100);
+            }
         }
+        initHeroWhenReady();
 
         // Resize handler for hero
         window.addEventListener('resize', () => {
             if (camera && renderer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.aspect = cachedWidth / cachedHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setSize(cachedWidth, cachedHeight);
             }
         });
 
