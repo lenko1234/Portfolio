@@ -22,21 +22,16 @@
 
     <!-- DNS prefetch for older browsers -->
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
 
     <!-- Preconnect to external origins for faster resource loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Load Three.js asynchronously to prevent render blocking -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" async defer></script>
-
-    <!-- Load Tailwind CSS asynchronously -->
-    <script src="https://cdn.tailwindcss.com" async defer></script>
+    <!-- Three.js will be loaded on-demand when user interacts -->
+    <!-- Tailwind CSS removed - using inline CSS instead -->
 
     <!-- Load Google Fonts with font-display: swap for better performance -->
     <link
@@ -713,6 +708,117 @@
                 top: 100%;
             }
         }
+
+        /* Utility classes to replace Tailwind */
+        .flex {
+            display: flex;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .items-start {
+            align-items: flex-start;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .space-x-2>*+* {
+            margin-left: 0.5rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+
+        .text-base {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+
+        .text-\[9px\] {
+            font-size: 9px;
+        }
+
+        .text-\[10px\] {
+            font-size: 10px;
+        }
+
+        .text-emerald-500 {
+            color: var(--emerald);
+        }
+
+        .text-white {
+            color: #fff;
+        }
+
+        .text-gray-400 {
+            color: #9ca3af;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .uppercase {
+            text-transform: uppercase;
+        }
+
+        .italic {
+            font-style: italic;
+        }
+
+        .tracking-widest {
+            letter-spacing: 0.1em;
+        }
+
+        .tracking-\[0\.3em\] {
+            letter-spacing: 0.3em;
+        }
+
+        .leading-relaxed {
+            line-height: 1.625;
+        }
+
+        .transition-colors {
+            transition-property: color;
+            transition-duration: 0.3s;
+        }
+
+        .hover\:text-white:hover {
+            color: #fff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .md\:block {
+                display: block;
+            }
+        }
     </style>
 </head>
 
@@ -1312,8 +1418,14 @@
         });
         update(); // Initial run
 
-        // Subtle Mouse Depth
+        // Subtle Mouse Depth with throttling
+        let lastMouseMove = 0;
+        const MOUSE_THROTTLE = 16; // ~60fps max
         window.addEventListener('mousemove', (e) => {
+            const now = performance.now();
+            if (now - lastMouseMove < MOUSE_THROTTLE) return;
+            lastMouseMove = now;
+
             const x = (e.clientX / cachedWidth - 0.5) * 10;
             const y = (e.clientY / cachedHeight - 0.5) * 10;
             svgLayer.style.transform = `translate(${x}px, ${y}px)`;
@@ -1462,7 +1574,15 @@
                 document.getElementById('core-status').innerText = 'IDLE';
                 document.getElementById('core-status').style.color = '#10b981';
             });
+
+            // Throttle pointermove for better performance
+            let lastPointerMove = 0;
+            const POINTER_THROTTLE = 16; // ~60fps
             window.addEventListener('pointermove', e => {
+                const now = performance.now();
+                if (now - lastPointerMove < POINTER_THROTTLE) return;
+                lastPointerMove = now;
+
                 mouse2.x = (e.clientX / cachedWidth) * 2 - 1;
                 mouse2.y = -(e.clientY / cachedHeight) * 2 + 1;
             });
@@ -1471,7 +1591,19 @@
         }
 
         function animateBoids() {
-            requestAnimationFrame(animateBoids);
+            // Only animate if hero canvas is visible (opacity > 0)
+            const heroOpacity = parseFloat(heroCanvas.style.opacity || 1);
+            if (heroOpacity > 0.01) {
+                requestAnimationFrame(animateBoids);
+            } else {
+                // Stop animation loop when not visible to save CPU
+                setTimeout(() => {
+                    if (parseFloat(heroCanvas.style.opacity || 1) > 0.01) {
+                        animateBoids(); // Resume if visible again
+                    }
+                }, 1000);
+                return;
+            }
 
             raycaster.setFromCamera(mouse2, camera);
             raycaster.ray.intersectPlane(plane, attractionPoint);
@@ -1574,16 +1706,52 @@
             heroScrollOffset.innerText = Math.floor(scrollSimulation).toString().padStart(4, '0');
         };
 
-        // Initialize hero - wait for Three.js to load
+        // Initialize hero - wait for Three.js to load on-demand
+        let threeJsLoaded = false;
+        let threeJsLoading = false;
+        let boidsInitialized = false;
+
+        function loadThreeJs() {
+            if (threeJsLoaded || threeJsLoading) return;
+            threeJsLoading = true;
+
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+            script.async = true;
+            script.onload = () => {
+                threeJsLoaded = true;
+                initHeroWhenReady();
+            };
+            document.head.appendChild(script);
+        }
+
         function initHeroWhenReady() {
-            if (typeof THREE !== 'undefined') {
+            if (typeof THREE !== 'undefined' && !boidsInitialized) {
+                boidsInitialized = true;
                 initBoids();
-            } else {
-                // Wait for Three.js to load
-                setTimeout(initHeroWhenReady, 100);
             }
         }
-        initHeroWhenReady();
+
+        // Load Three.js on first scroll or interaction
+        let hasInteracted = false;
+        function triggerThreeJsLoad() {
+            if (!hasInteracted) {
+                hasInteracted = true;
+                loadThreeJs();
+            }
+        }
+
+        // Listen for first interaction
+        window.addEventListener('scroll', triggerThreeJsLoad, { once: true, passive: true });
+        window.addEventListener('touchstart', triggerThreeJsLoad, { once: true, passive: true });
+        window.addEventListener('mousemove', triggerThreeJsLoad, { once: true, passive: true });
+
+        // Preload Three.js after 2 seconds if no interaction
+        setTimeout(() => {
+            if (!hasInteracted) {
+                loadThreeJs();
+            }
+        }, 2000);
 
         // Resize handler for hero
         window.addEventListener('resize', () => {
