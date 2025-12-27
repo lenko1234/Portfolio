@@ -58,14 +58,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10;
+            z-index: 2;
             opacity: 1;
             transition: opacity 0.8s ease;
             pointer-events: none;
         }
 
         .hero-content * {
-            pointer-events: auto;
+            pointer-events: none;
         }
 
         /* === MAIN BODY STYLES === */
@@ -81,7 +81,14 @@
             overflow-x: hidden;
             color: #fff;
             cursor: crosshair;
-            /* Bloqueo de selección de texto para no romper los boids */
+            touch-action: none;
+            /* Prevent mobile scroll */
+        }
+
+        /* Prevent text selection only in hero area to protect boids interaction */
+        #hero-canvas,
+        #hero-ui,
+        .hero-content {
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -96,6 +103,8 @@
             inset: 0;
             background: radial-gradient(circle at center, #020804 0%, #000 100%);
             overflow: hidden;
+            pointer-events: none;
+            /* Allow clicks to pass through to CTA */
         }
 
         /* SVG Narrative Layer */
@@ -142,7 +151,7 @@
             pointer-events: none;
             display: none;
             will-change: opacity, transform, letter-spacing, filter;
-            max-width: 90vw;
+            max-width: 95vw;
             /* Aumentado para textos en español */
             z-index: 100;
             /* Siempre por encima de las imágenes */
@@ -156,6 +165,8 @@
             line-height: 0.85;
             color: #fff;
             text-align: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .data-label {
@@ -377,6 +388,7 @@
             font-weight: bold;
             color: var(--emerald);
             cursor: pointer;
+            z-index: 100;
         }
 
         .terminal-btn:hover {
@@ -496,6 +508,144 @@
                 opacity: 0.4;
             }
         }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            width: 100%;
+            max-width: 700px;
+            max-height: 88vh;
+            background: rgba(8, 8, 8, 0.98);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            position: relative;
+            padding: 1.2rem;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--emerald) transparent;
+            clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1) translateY(0);
+        }
+
+        .timeline {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            width: 1px;
+            height: 0%;
+            background: linear-gradient(to bottom, var(--emerald), transparent);
+            transition: height 2s ease-out;
+            transition-delay: 0.5s;
+        }
+
+        .modal-overlay.active .timeline::before {
+            height: 100%;
+        }
+
+        .step-item {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.6s ease-out;
+        }
+
+        .modal-overlay.active .step-item {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .step-dot {
+            position: absolute;
+            left: 12px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            background: #000;
+            border: 2px solid var(--emerald);
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 10px var(--emerald-dim);
+        }
+
+        .modal-overlay.active .step-item:nth-child(1) {
+            transition-delay: 0.8s;
+        }
+
+        .modal-overlay.active .step-item:nth-child(2) {
+            transition-delay: 1.3s;
+        }
+
+        .modal-overlay.active .step-item:nth-child(3) {
+            transition-delay: 1.8s;
+        }
+
+        .modal-overlay.active .step-item:nth-child(4) {
+            transition-delay: 2.3s;
+        }
+
+        .step-content {
+            background: rgba(20, 20, 20, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            padding: 1rem;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        .step-content:hover {
+            border-color: var(--emerald);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.05), transparent);
+            position: absolute;
+            top: -100px;
+            left: 0;
+            animation: scan 6s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% {
+                top: -100px;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -601,15 +751,12 @@
 
             <!-- Terminal Buttons -->
             <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; width: 100%; max-width: 56rem; padding: 0 1.5rem; pointer-events: auto;">
-                <button class="terminal-btn">
-                    [ENVIAR_EMAIL]
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem; width: 100%; max-width: 50rem; padding: 0 1.5rem; pointer-events: auto;">
+                <button class="terminal-btn" onclick="openMethodModal()">
+                    [NUESTRO_METODO]
                 </button>
-                <button class="terminal-btn">
-                    [MÁS_INFO]
-                </button>
-                <button class="terminal-btn">
-                    [AGENDAR_LLAMADA]
+                <button class="terminal-btn" onclick="window.location.href='mailto:contact@noxsites.com'">
+                    [INICIAR_CONTACTO]
                 </button>
             </div>
 
@@ -639,10 +786,10 @@
          * url: optional project link
          */
         const nodes = [
-            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [6, 18], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
-            { id: 2, pos: [70, 45], text: "PLATAFORMAS\nE-COMMERCE", label: "VENTAS_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
-            { id: 3, pos: [25, 70], text: "APLICACIONES\nWEB", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
-            { id: 4, pos: [70, 30], text: "SITIOS\nCORPORATIVOS", label: "PRESENCIA_PREMIUM", life: [44, 56], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
+            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [6, 18], behavior: 1, image: "../assets/EsquinaJardin.png", url: "#" },
+            { id: 2, pos: [75, 45], text: "PLATAFORMAS\nE-COMMERCE", label: "VENTAS_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "../assets/ElectroAguirre.png", url: "#" },
+            { id: 3, pos: [35, 70], text: "APLICACIONES\nWEB", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "../assets/FGHerreria.png", url: "#" },
+            { id: 4, pos: [70, 30], text: "SITIOS\nCORPORATIVOS", label: "PRESENCIA_PREMIUM", life: [44, 56], behavior: 4, hasBranch: true, image: "../assets/Panzo.png", url: "#" },
             { id: 5, pos: [50, 60], text: "DISEÑO\nPORTFOLIO", label: "IMPACTO_VISUAL", life: [58, 70], behavior: 1 }
         ];
 
@@ -654,7 +801,7 @@
             div.style.top = `${n.pos[1]}%`;
 
             div.innerHTML = `
-                <div class="primary-text" style="font-size: 8vw;"><span class="content"></span><span class="cursor"></span></div>
+                <div class="primary-text" style="font-size: 7vw;"><span class="content"></span><span class="cursor"></span></div>
                 <span class="data-label"></span>
             `;
             stage.appendChild(div);
@@ -733,15 +880,208 @@
             return { x: midX, y: midY, isCorner: p > 0.5 };
         }
 
+        // === PAGINATED SCROLL SYSTEM ===
+        const SECTIONS = [
+            { id: 0, name: 'HERO', progress: 0 },
+            { id: 1, name: 'LANDING_PAGES', progress: 12 },
+            { id: 2, name: 'E_COMMERCE', progress: 23 },
+            { id: 3, name: 'WEB_APPS', progress: 35 },
+            { id: 4, name: 'CORPORATE_SITES', progress: 50 },
+            { id: 5, name: 'PORTFOLIO_DESIGN', progress: 64 },
+            { id: 6, name: 'CTA', progress: 87.5 }
+        ];
+
+        let currentSection = 0;
+        let isAnimating = false;
+        let virtualProgress = 0; // Simulated scroll progress (0-100)
+        let ctaScrollOffset = 0; // Extra scroll offset within CTA section
+        let targetCtaScrollOffset = 0; // Target offset for smooth animation
+        let isAutoAdvancing = false; // Flag for auto-advance in projects
+        const TRANSITION_DURATION = 1500; // ms - Slower for better readability
+        const CTA_SCROLL_INCREMENT = 5; // How much to increment per scroll in CTA
+        const CTA_ANIMATION_SPEED = 0.15; // Lerp speed for smooth animation
+        const AUTO_ADVANCE_SPEED = 0.015; // Very slow auto-advance in projects section
+
+        // Easing function for smooth transitions
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // Auto-advance in projects section
+        function autoAdvanceProjects() {
+            if (isAutoAdvancing && currentSection >= 1 && currentSection <= 5) {
+                // Only auto-advance within current section bounds
+                const currentSectionData = SECTIONS[currentSection];
+                const nextSectionData = SECTIONS[currentSection + 1];
+
+                if (nextSectionData && virtualProgress < nextSectionData.progress - 0.5) {
+                    virtualProgress += AUTO_ADVANCE_SPEED;
+                    update();
+                }
+                requestAnimationFrame(autoAdvanceProjects);
+            }
+        }
+
+        // Smooth lerp for CTA offset
+        function animateCtaOffset() {
+            if (Math.abs(targetCtaScrollOffset - ctaScrollOffset) > 0.01) {
+                ctaScrollOffset += (targetCtaScrollOffset - ctaScrollOffset) * CTA_ANIMATION_SPEED;
+                update();
+                requestAnimationFrame(animateCtaOffset);
+            } else {
+                ctaScrollOffset = targetCtaScrollOffset;
+            }
+        }
+
+        // Animate to a target section
+        function animateToSection(targetSection) {
+            if (isAnimating || targetSection < 0 || targetSection >= SECTIONS.length) return;
+            if (targetSection === currentSection) return;
+
+            isAnimating = true;
+            isAutoAdvancing = false; // Stop auto-advance during transition
+            const startProgress = virtualProgress;
+            const endProgress = SECTIONS[targetSection].progress;
+            const startTime = performance.now();
+
+            // Reset CTA scroll offset when leaving CTA
+            if (currentSection === SECTIONS.length - 1 && targetSection !== SECTIONS.length - 1) {
+                ctaScrollOffset = 0;
+                targetCtaScrollOffset = 0;
+            }
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
+                const easedProgress = easeInOutCubic(progress);
+
+                virtualProgress = startProgress + (endProgress - startProgress) * easedProgress;
+                update(); // Update all animations
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentSection = targetSection;
+                    virtualProgress = endProgress;
+                    isAnimating = false;
+                    update();
+
+                    // Start auto-advance if in projects section (1-5)
+                    if (currentSection >= 1 && currentSection <= 5) {
+                        isAutoAdvancing = true;
+                        autoAdvanceProjects();
+                    }
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Navigate to next/previous section
+        function goToNextSection() {
+            // If in CTA section, increment scroll offset instead of changing section
+            if (currentSection === SECTIONS.length - 1) {
+                // Limit maximum scroll offset to prevent infinite scrolling
+                const MAX_CTA_SCROLL = 100;
+                if (targetCtaScrollOffset < MAX_CTA_SCROLL) {
+                    targetCtaScrollOffset += CTA_SCROLL_INCREMENT;
+                    animateCtaOffset();
+                }
+                return;
+            }
+            animateToSection(currentSection + 1);
+        }
+
+        function goToPreviousSection() {
+            // If in CTA section with scroll offset, decrement it first
+            if (currentSection === SECTIONS.length - 1 && targetCtaScrollOffset > 0) {
+                targetCtaScrollOffset = Math.max(0, targetCtaScrollOffset - CTA_SCROLL_INCREMENT);
+                animateCtaOffset();
+                return;
+            }
+            animateToSection(currentSection - 1);
+        }
+
+        // Desktop: Mouse Wheel
+        let wheelTimeout;
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (isAnimating) return;
+
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                if (e.deltaY > 0) {
+                    goToNextSection();
+                } else {
+                    goToPreviousSection();
+                }
+            }, 50); // Small debounce to prevent multiple triggers
+        }, { passive: false });
+
+        // Mobile: Touch Swipe
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].clientY;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            if (isAnimating) return;
+            const swipeDistance = touchStartY - touchEndY;
+            const minSwipeDistance = 50; // Minimum swipe distance in pixels
+
+            if (Math.abs(swipeDistance) < minSwipeDistance) return;
+
+            if (swipeDistance > 0) {
+                // Swipe up - go to next section
+                goToNextSection();
+            } else {
+                // Swipe down - go to previous section
+                goToPreviousSection();
+            }
+        }
+
+        // Keyboard Navigation
+        window.addEventListener('keydown', (e) => {
+            if (isAnimating) return;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'PageDown':
+                case ' ': // Space
+                    e.preventDefault();
+                    goToNextSection();
+                    break;
+                case 'ArrowUp':
+                case 'PageUp':
+                    e.preventDefault();
+                    goToPreviousSection();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    animateToSection(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    animateToSection(SECTIONS.length - 1);
+                    break;
+            }
+        });
+
+        // Update function now uses virtualProgress instead of real scroll
         function update() {
             const w = window.innerWidth;
             const h = window.innerHeight;
             svgLayer.setAttribute('width', w);
             svgLayer.setAttribute('height', h);
 
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = (scrollY / scrollMax) * 100;
+            const progress = virtualProgress; // Use virtual progress instead of scroll position
 
             let dMain = "";
             let dBA = "";
@@ -827,8 +1167,9 @@
                         transform.push(`scale(${0.8 + local * 0.3})`);
                     } else if (node.behavior === 2) { // Tracking reveal
                         node.el.style.letterSpacing = `${(1 - local) * 0.7}em`;
-                    } else if (node.behavior === 3) { // Blur discovery
-                        node.el.style.filter = `blur(${(1 - local) * 12}px)`;
+                    } else if (node.behavior === 3) { // Blur discovery - fast fade
+                        const blurProgress = Math.min(local / 0.2, 1); // Complete blur in first 20%
+                        node.el.style.filter = `blur(${(1 - blurProgress) * 12}px)`;
                     } else if (node.behavior === 4) { // Skew
                         transform.push(`skewX(${(1 - local) * 15}deg)`);
                     }
@@ -844,20 +1185,40 @@
                 const isActive = progress >= imgNode.life[0] && progress <= imgNode.life[1];
                 if (isActive) {
                     const local = (progress - imgNode.life[0]) / (imgNode.life[1] - imgNode.life[0]);
-                    const typeP = Math.min(local / 0.4, 1);
 
                     // Image appearance speed boost
-                    const imageDelay = 0.25; // Keep starting at 25% of node life
-                    const animationDuration = 0.1; // FAST! Only 10% of node life to reach full opacity
+                    const imageDelay = 0.25;
+                    const animationDuration = 0.1;
                     const imageP = Math.max(0, Math.min(1, (local - imageDelay) / animationDuration));
                     imgNode.imageEl.style.opacity = imageP;
+                    imgNode.imageEl.style.pointerEvents = imageP > 0.1 ? 'auto' : 'none'; // Only interactive when visible
                 } else {
                     imgNode.imageEl.style.opacity = 0;
+                    imgNode.imageEl.style.pointerEvents = 'none'; // Critical fix: don't block clicks
                 }
             });
+
+            // === HERO VISIBILITY CONTROL ===
+            const heroContentEl = document.getElementById('hero-content');
+            const heroUIEl = document.getElementById('hero-ui');
+            const heroCanvasEl = document.getElementById('hero-canvas');
+
+            if (progress > 6) {
+                // Hide hero completely after leaving hero section
+                if (heroContentEl) heroContentEl.style.display = 'none';
+                if (heroUIEl) heroUIEl.style.display = 'none';
+            } else {
+                // Show hero in hero section
+                if (heroContentEl) heroContentEl.style.display = 'flex';
+                if (heroUIEl) heroUIEl.style.display = 'block';
+            }
+
+            // Fade out hero elements based on progress
+            const heroFade = Math.max(0, 1 - (progress / 5));
+            if (heroContentEl) heroContentEl.style.opacity = heroFade;
+            if (heroUIEl) heroUIEl.style.opacity = heroFade;
         }
 
-        window.addEventListener('scroll', update);
         window.addEventListener('resize', update);
         update(); // Initial run
 
@@ -896,11 +1257,7 @@
 
         // Update CTA section visibility and animations
         function updateCTA() {
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = (scrollY / scrollMax) * 100;
-
-            console.log('Scroll Progress:', progress.toFixed(2) + '%');
+            const progress = virtualProgress; // Use virtual progress
 
             // Show PROJECTS header during projects timeline (6-70%)
             if (progress >= 6 && progress < 70) {
@@ -915,20 +1272,24 @@
                 ctaSection.classList.add('active');
                 const ctaProgress = (progress - 75) / 25; // 0 to 1 in the 75-100% range
                 ctaSection.style.opacity = Math.min(1, ctaProgress * 2); // Fade in quickly
-                console.log('CTA Active - Progress:', progress, 'Opacity:', ctaSection.style.opacity);
             } else {
                 ctaSection.classList.remove('active');
                 ctaSection.style.opacity = 0;
             }
 
-            // Matrix grid parallax animation
-            const hOffset = (scrollY * 0.4) % 100;
-            const vOffset = (scrollY * 0.15) % 100;
+            // Matrix grid parallax animation with continuous movement in CTA
+            let scrollForParallax = (progress / 100) * 4000;
+
+            // Add CTA scroll offset for continuous grid movement (smooth lerp animation)
+            scrollForParallax += ctaScrollOffset * 100; // Smooth, fluid movement
+
+            const hOffset = (scrollForParallax * 0.4) % 100;
+            const vOffset = (scrollForParallax * 0.15) % 100;
             hLinesContainer.style.transform = `translateY(${hOffset}px)`;
             vLinesContainer.style.transform = `translateX(${vOffset}px)`;
 
             // Update scroll offset display
-            const paddedScroll = Math.floor(scrollY).toString().padStart(4, '0');
+            const paddedScroll = Math.floor(scrollForParallax).toString().padStart(4, '0');
             scrollDisplay.innerText = `SYNC_OFFSET: [${paddedScroll}]`;
         }
 
@@ -938,11 +1299,6 @@
             originalUpdate();
             updateCTA();
         };
-
-        // Re-attach scroll listeners with the new wrapped update function
-        window.removeEventListener('scroll', originalUpdate);
-        window.addEventListener('scroll', update);
-        window.addEventListener('resize', update);
 
         updateCTA(); // Initial run
 
@@ -1034,7 +1390,10 @@
                 const isActive = i < COUNT_ACTIVE;
                 const accel = v3.set(0, 0, 0);
 
-                if (isActive && isAttracting) {
+                // Disable attraction in projects section (6% - 70%)
+                const inProjectsSection = virtualProgress >= 6 && virtualProgress < 70;
+
+                if (isActive && isAttracting && !inProjectsSection) {
                     const seek = attractionPoint.clone().sub(v2.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
                     seek.setLength(MAX_SPEED).sub(v1.set(velocities[i * 3], velocities[i * 3 + 1], velocities[i * 3 + 2]));
                     accel.add(seek.multiplyScalar(ATTRACTION_FORCE));
@@ -1077,9 +1436,7 @@
         updateCTA = function () {
             originalUpdateCTA();
 
-            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = (scrollY / scrollMax) * 100;
+            const progress = virtualProgress; // Use virtual progress
 
             // --- Lógica Persistente de Boids ---
             if (progress < 6) {
@@ -1095,6 +1452,7 @@
             } else if (progress < 70) {
                 // Durante Proyectos: Opacidad sutil y solo 500 boids
                 heroCanvas.style.opacity = "0.25";
+                heroCanvas.style.pointerEvents = 'auto'; // Allow boids interaction
                 if (activeMesh && indepMesh) {
                     activeMesh.count = 500;
                     indepMesh.count = 0;
@@ -1103,6 +1461,7 @@
                 // Desvanecer completamente para el CTA (70% a 75%)
                 const finalFade = Math.max(0, 1 - (progress - 70) / 5);
                 heroCanvas.style.opacity = 0.25 * finalFade;
+                heroCanvas.style.pointerEvents = 'none'; // CRITICAL: Don't block CTA button clicks!
                 if (activeMesh) activeMesh.count = Math.floor(500 * finalFade);
             }
 
@@ -1111,7 +1470,18 @@
             heroUI.style.opacity = uiFade;
             heroContent.style.opacity = uiFade;
 
-            heroScrollOffset.innerText = Math.floor(scrollY).toString().padStart(4, '0');
+            // CRITICAL: Hide hero content completely after hero section to prevent blocking
+            if (progress > 6) {
+                heroContent.style.display = 'none';
+                heroUI.style.display = 'none';
+            } else {
+                heroContent.style.display = 'flex';
+                heroUI.style.display = 'block';
+            }
+
+            // Simulate scroll for display
+            const scrollSimulation = (progress / 100) * 4000;
+            heroScrollOffset.innerText = Math.floor(scrollSimulation).toString().padStart(4, '0');
         };
 
         // Initialize hero
@@ -1127,7 +1497,101 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
             }
         });
+
+        // --- METHOD MODAL LOGIC ---
+        window.openMethodModal = function () {
+            const modal = document.getElementById('methodModal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        };
+
+        window.closeMethodModal = function () {
+            const modal = document.getElementById('methodModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
+        };
     </script>
+
+    <!-- Modal HTML -->
+    <div id="methodModal" class="modal-overlay" style="display: none;" onclick="closeMethodModal()">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <div class="scanline"></div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <p class="text-[9px] text-emerald-500 tracking-[0.3em] mb-1">PROTOCOLO // FLUJO_DE_TRABAJO</p>
+                    <h2 class="text-2xl font-bold text-white uppercase italic">¿Cómo trabajamos?</h2>
+                </div>
+                <button onclick="closeMethodModal()"
+                    class="close-btn text-xs tracking-widest text-emerald-500 hover:text-white transition-colors">
+                    [ CERRAR ]
+                </button>
+            </div>
+
+            <div class="timeline">
+                <div class="step-item">
+                    <div class="step-dot"></div>
+                    <div class="step-content">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-emerald-500 text-[10px] font-bold">01</span>
+                            <h3 class="text-white font-bold text-base uppercase">Alineación de Concepto</h3>
+                        </div>
+                        <p class="text-gray-400 text-xs leading-relaxed">
+                            Nos sumergimos en tu visión para asegurar que cada estrategia digital esté alineada
+                            perfectamente con tus objetivos de negocio. Sin soluciones genéricas, solo ingeniería a
+                            medida.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-dot"></div>
+                    <div class="step-content">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-emerald-500 text-[10px] font-bold">02</span>
+                            <h3 class="text-white font-bold text-base uppercase">UX Estratégica</h3>
+                        </div>
+                        <p class="text-gray-400 text-xs leading-relaxed">
+                            Creamos interfaces que no son solo visualmente impactantes, sino que están diseñadas para
+                            convertir visitantes en clientes leales mediante recorridos de usuario fluidos.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-dot"></div>
+                    <div class="step-content">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-emerald-500 text-[10px] font-bold">03</span>
+                            <h3 class="text-white font-bold text-base uppercase">Excelencia Técnica</h3>
+                        </div>
+                        <p class="text-gray-400 text-xs leading-relaxed">
+                            Ingeniería de alto rendimiento. Construimos arquitecturas ultrarrápidas, seguras y
+                            adaptables que proporcionan una base sólida para el crecimiento de tu marca.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-dot"></div>
+                    <div class="step-content">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-emerald-500 text-[10px] font-bold">04</span>
+                            <h3 class="text-white font-bold text-base uppercase">Evolución Continua</h3>
+                        </div>
+                        <p class="text-gray-400 text-xs leading-relaxed">
+                            Despliegue de precisión. Monitoreamos y optimizamos tu plataforma después del lanzamiento
+                            para garantizar un rendimiento máximo y estabilidad constante.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
