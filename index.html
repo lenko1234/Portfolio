@@ -520,6 +520,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease;
+            touch-action: none;
         }
 
         .modal-overlay.active {
@@ -535,12 +536,14 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
             position: relative;
             padding: 1.2rem;
-            overflow-y: hidden;
+            overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--emerald) transparent;
             clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
             transform: scale(0.95) translateY(20px);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal-overlay.active .modal-container {
