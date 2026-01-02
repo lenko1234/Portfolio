@@ -18,6 +18,25 @@
     <link rel="alternate" hreflang="es" href="https://noxsites.com/es/" />
     <link rel="alternate" hreflang="x-default" href="https://noxsites.com/" />
 
+    <!-- Auto Language Detection -->
+    <script>
+        (function () {
+            const preferredLang = localStorage.getItem('preferredLanguage');
+
+            if (!preferredLang) {
+                const userLang = navigator.language || navigator.userLanguage;
+                if (userLang.startsWith('es')) {
+                    localStorage.setItem('preferredLanguage', 'es');
+                    window.location.href = '/es/';
+                } else {
+                    localStorage.setItem('preferredLanguage', 'en');
+                }
+            } else if (preferredLang === 'es' && !window.location.pathname.includes('/es')) {
+                window.location.href = '/es/';
+            }
+        })();
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -646,10 +665,109 @@
                 top: 100%;
             }
         }
+
+        /* Language Switcher */
+        #language-switcher {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            pointer-events: auto;
+        }
+
+        .lang-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: rgba(16, 185, 129, 0.5);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            backdrop-filter: blur(4px);
+        }
+
+        .lang-btn:hover {
+            border-color: var(--emerald);
+            color: var(--emerald);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .lang-btn.active {
+            border-color: var(--emerald);
+            color: var(--emerald-bright);
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Scroll Indicator */
+        #scroll-indicator {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            z-index: 20;
+            opacity: 1;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            pointer-events: none;
+        }
+
+        #scroll-indicator.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(60px);
+        }
+
+        .scroll-arrow {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, var(--emerald), transparent);
+            margin: 0 auto;
+            position: relative;
+            animation: scroll-bounce 2s ease-in-out infinite;
+        }
+
+        .scroll-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid var(--emerald);
+            filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6));
+        }
+
+        @keyframes scroll-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: translateY(10px);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- Language Switcher -->
+    <div id="language-switcher">
+        <span class="lang-btn active">EN</span>
+        <a href="/es/" class="lang-btn" onclick="localStorage.setItem('preferredLanguage', 'es')">ES</a>
+    </div>
 
     <!-- HERO SECTION -->
     <div id="hero-canvas"></div>
@@ -677,6 +795,11 @@
             <p style="font-size: 11px; letter-spacing: 0.3em; opacity: 0.6; font-family: 'JetBrains Mono', monospace;">
                 SCROLL TO EXPLORE PROJECTS</p>
         </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div id="scroll-indicator">
+        <div class="scroll-arrow"></div>
     </div>
 
     <div class="system-marker">WEB_DESIGN: PREMIUM_EXPERIENCES // STATUS: AVAILABLE</div>
@@ -1003,6 +1126,8 @@
 
         // Desktop: Mouse Wheel
         let wheelTimeout;
+        const scrollIndicator = document.getElementById('scroll-indicator');
+
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (isAnimating) return;
@@ -1216,6 +1341,20 @@
             const heroFade = Math.max(0, 1 - (progress / 5));
             if (heroContentEl) heroContentEl.style.opacity = heroFade;
             if (heroUIEl) heroUIEl.style.opacity = heroFade;
+
+            // Scroll indicator fade and slide down
+            const scrollIndicator = document.getElementById('scroll-indicator');
+            if (scrollIndicator) {
+                if (progress > 5) {
+                    scrollIndicator.style.opacity = '0';
+                    scrollIndicator.style.transform = 'translateX(-50%) translateY(60px)';
+                } else {
+                    const indicatorFade = Math.max(0, 1 - (progress / 4));
+                    const slideDown = (progress / 4) * 60; // Slide down 60px as it fades
+                    scrollIndicator.style.opacity = indicatorFade.toString();
+                    scrollIndicator.style.transform = `translateX(-50%) translateY(${slideDown}px)`;
+                }
+            }
         }
 
         window.addEventListener('resize', update);
