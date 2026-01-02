@@ -61,6 +61,18 @@
             transition: opacity 0.8s ease;
         }
 
+        .hero-title {
+            font-size: 0.875rem;
+            letter-spacing: 0.4em;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 0.7rem;
+                letter-spacing: 0.2em;
+            }
+        }
+
         #hero-ui {
             position: fixed;
             top: 30px;
@@ -69,6 +81,13 @@
             pointer-events: none;
             opacity: 1;
             transition: opacity 0.8s ease;
+        }
+
+        @media (max-width: 768px) {
+            #hero-ui {
+                top: 20px;
+                left: 20px;
+            }
         }
 
         .hero-content {
@@ -680,6 +699,18 @@
             pointer-events: auto;
         }
 
+        @media (max-width: 768px) {
+            #language-switcher {
+                top: 20px;
+                right: 20px;
+            }
+
+            .lang-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 10px;
+            }
+        }
+
         .lang-btn {
             background: rgba(0, 0, 0, 0.6);
             border: 1px solid rgba(16, 185, 129, 0.3);
@@ -773,7 +804,7 @@
     <div id="hero-canvas"></div>
 
     <div id="hero-ui">
-        <h1 style="font-size: 0.875rem; letter-spacing: 0.4em; font-weight: bold; color: var(--emerald);">
+        <h1 class="hero-title" style="font-weight: bold; color: var(--emerald);">
             PREMIUM WEB DESIGNS</h1>
         <div
             style="font-size: 11px; opacity: 0.7; margin-top: 0.5rem; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">
@@ -1568,6 +1599,7 @@
         const heroCanvas = document.getElementById('hero-canvas');
         const heroUI = document.getElementById('hero-ui');
         const heroContent = document.getElementById('hero-content');
+        const langSwitcher = document.getElementById('language-switcher');
         const heroScrollOffset = document.getElementById('hero-scroll-offset');
 
         const originalUpdateCTA = updateCTA;
@@ -1607,14 +1639,17 @@
             const uiFade = Math.max(0, 1 - (progress / 3));
             heroUI.style.opacity = uiFade;
             heroContent.style.opacity = uiFade;
+            if (langSwitcher) langSwitcher.style.opacity = uiFade;
 
             // CRITICAL: Hide hero content completely after hero section to prevent blocking
             if (progress > 6) {
                 heroContent.style.display = 'none';
                 heroUI.style.display = 'none';
+                if (langSwitcher) langSwitcher.style.display = 'none';
             } else {
                 heroContent.style.display = 'flex';
                 heroUI.style.display = 'block';
+                if (langSwitcher) langSwitcher.style.display = 'flex';
             }
 
             // Simulate scroll for display
