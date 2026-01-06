@@ -875,6 +875,18 @@
             color: var(--emerald);
             padding: 10px;
         }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 
@@ -1292,6 +1304,10 @@
         window.addEventListener('keydown', (e) => {
             if (isAnimating) return;
 
+            // Don't intercept keyboard if user is typing in an input/textarea
+            const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
+            if (isTyping) return;
+
             switch (e.key) {
                 case 'ArrowDown':
                 case 'PageDown':
@@ -1618,9 +1634,12 @@
             }
 
             window.addEventListener('pointerdown', () => {
-                isAttracting = true;
-                document.getElementById('core-status').innerText = 'CORE_REVEALED';
-                document.getElementById('core-status').style.color = '#fff';
+                // Only allow attraction in hero section (progress < 6%)
+                if (virtualProgress < 6) {
+                    isAttracting = true;
+                    document.getElementById('core-status').innerText = 'CORE_REVEALED';
+                    document.getElementById('core-status').style.color = '#fff';
+                }
             });
             window.addEventListener('pointerup', () => {
                 isAttracting = false;
@@ -1628,8 +1647,11 @@
                 document.getElementById('core-status').style.color = '#10b981';
             });
             window.addEventListener('pointermove', e => {
-                mouse2.x = (e.clientX / window.innerWidth) * 2 - 1;
-                mouse2.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                // Only track mouse position in hero section (progress < 6%)
+                if (virtualProgress < 6) {
+                    mouse2.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouse2.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                }
             });
 
             animateBoids();
@@ -1888,7 +1910,7 @@
                 </button>
             </div>
 
-            <form class="contact-form" action="https://formspree.io/f/mqakppov" method="POST">
+            <form class="contact-form" action="https://formspree.io/f/xdakqnrr" method="POST">
                 <div class="form-group">
                     <label class="form-label">Name</label>
                     <input type="text" name="name" class="form-input" placeholder="ENTER YOUR NAME..." required>
