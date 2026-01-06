@@ -59,6 +59,8 @@
             z-index: 1;
             opacity: 1;
             transition: opacity 0.8s ease;
+            pointer-events: none;
+            /* Prevents blocking clicks on elements behind */
         }
 
         .hero-title {
@@ -118,9 +120,8 @@
             -ms-overflow-style: none;
             overflow-x: hidden;
             color: #fff;
-            cursor: crosshair;
-            touch-action: none;
-            /* Prevent mobile scroll */
+            /* cursor: crosshair removed - blocked interaction */
+            /* touch-action: none removed - blocked clicks on some browsers */
         }
 
         /* Prevent text selection only in hero area to protect boids interaction */
@@ -141,8 +142,6 @@
             inset: 0;
             background: radial-gradient(circle at center, #020804 0%, #000 100%);
             overflow: hidden;
-            pointer-events: none;
-            /* Allow clicks to pass through to CTA */
         }
 
         /* SVG Narrative Layer */
@@ -264,8 +263,9 @@
             opacity: 0;
             transition: opacity 0.8s ease;
             transform: translate(-50%, -50%);
-            z-index: 50;
-            /* Por debajo del texto */
+            z-index: 200;
+            /* Above text and boids */
+            cursor: pointer;
         }
 
         .project-image-link {
@@ -939,10 +939,10 @@
          * url: optional project link
          */
         const nodes = [
-            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "MAXIMUM_CONVERSION", life: [6, 18], behavior: 1, image: "assets/EsquinaJardin.png", url: "#" },
-            { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "SALES_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "#" },
+            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "MAXIMUM_CONVERSION", life: [6, 18], behavior: 1, image: "assets/EsquinaJardin.png", url: "https://www.viveroesquinajardin.com.ar/" },
+            { id: 2, pos: [75, 45], text: "E-COMMERCE\nPLATFORMS", label: "SALES_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "assets/ElectroAguirre.png", url: "https://www.electroaguirre.com.ar/" },
             { id: 3, pos: [35, 70], text: "WEB\nAPPS", label: "INTERACTIVE_EXPERIENCES", life: [28, 42], behavior: 3, image: "assets/FGHerreria.png", url: "#" },
-            { id: 4, pos: [70, 30], text: "CORPORATE\nSITES", label: "PREMIUM_PRESENCE", life: [44, 56], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "#" },
+            { id: 4, pos: [70, 30], text: "CORPORATE\nSITES", label: "PREMIUM_PRESENCE", life: [44, 56], behavior: 4, hasBranch: true, image: "assets/Panzo.png", url: "https://lenko1234.github.io/Panzo.ar/" },
             { id: 5, pos: [50, 60], text: "PORTFOLIO\nDESIGN", label: "VISUAL_IMPACT", life: [58, 70], behavior: 1 }
         ];
 
@@ -1619,10 +1619,11 @@
                     activeMesh.count = Math.floor(1000 * (fadeFactor));
                     indepMesh.count = Math.floor(2000 * (fadeFactor));
                 }
+                heroCanvas.style.pointerEvents = 'auto'; // Enable interaction in Hero section
             } else if (progress < 70) {
                 // Durante Proyectos: Opacidad sutil y solo 500 boids
                 heroCanvas.style.opacity = "0.25";
-                heroCanvas.style.pointerEvents = 'auto'; // Allow boids interaction
+                heroCanvas.style.pointerEvents = 'none'; // Don't block project links!
                 if (activeMesh && indepMesh) {
                     activeMesh.count = 500;
                     indepMesh.count = 0;
