@@ -569,19 +569,23 @@
         .modal-container {
             width: 100%;
             max-width: 700px;
-            max-height: 88vh;
+            max-height: 90vh;
             background: rgba(8, 8, 8, 0.98);
             border: 1px solid rgba(16, 185, 129, 0.2);
             position: relative;
-            padding: 1.2rem;
+            padding: 2.5rem;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--emerald) transparent;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
             transform: scale(0.95) translateY(20px);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-container::-webkit-scrollbar {
+            display: none;
         }
 
         .modal-overlay.active .modal-container {
@@ -789,6 +793,88 @@
                 opacity: 1;
             }
         }
+
+        /* --- CONTACT FORM STYLES --- */
+        .contact-form {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--emerald);
+            letter-spacing: 0.2rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 0.8rem 1rem;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--emerald);
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--emerald);
+            color: var(--emerald);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.4em;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .submit-btn:hover {
+            background: var(--emerald);
+            color: #000;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-input option {
+            background-color: #0a0a0a;
+            color: var(--emerald);
+            padding: 10px;
+        }
     </style>
 </head>
 
@@ -908,7 +994,7 @@
                 <button class="terminal-btn" onclick="openMethodModal()">
                     [OUR_METHOD]
                 </button>
-                <button class="terminal-btn" onclick="window.location.href='mailto:contact@noxsites.com'">
+                <button class="terminal-btn" onclick="openContactModal()">
                     [INITIATE_CONTACT]
                 </button>
             </div>
@@ -1676,6 +1762,7 @@
         window.openMethodModal = function () {
             const modal = document.getElementById('methodModal');
             modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
             setTimeout(() => {
                 modal.classList.add('active');
             }, 10);
@@ -1684,6 +1771,26 @@
         window.closeMethodModal = function () {
             const modal = document.getElementById('methodModal');
             modal.classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
+        };
+
+        // --- CONTACT MODAL LOGIC ---
+        window.openContactModal = function () {
+            const modal = document.getElementById('contactModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        };
+
+        window.closeContactModal = function () {
+            const modal = document.getElementById('contactModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
             setTimeout(() => {
                 modal.style.display = 'none';
             }, 400);
@@ -1763,6 +1870,51 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal-overlay" style="display: none;" onclick="closeContactModal()">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <div class="scanline"></div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <p class="text-[9px] text-emerald-500 tracking-[0.3em] mb-1">CONTACT US</p>
+                    <h2 class="text-2xl font-bold text-white uppercase italic">Start Your Project</h2>
+                </div>
+                <button onclick="closeContactModal()"
+                    class="close-btn text-xs tracking-widest text-emerald-500 hover:text-white transition-colors">
+                    [ CLOSE ]
+                </button>
+            </div>
+
+            <form class="contact-form" action="https://formspree.io/f/mqakppov" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" name="name" class="form-input" placeholder="ENTER YOUR NAME..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" placeholder="ENTER YOUR EMAIL..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Project Type</label>
+                    <select name="type" class="form-input" required>
+                        <option value="" disabled selected>SELECT PROJECT TYPE...</option>
+                        <option value="landing">Landing Page</option>
+                        <option value="ecommerce">E-Commerce</option>
+                        <option value="webapp">Web Application</option>
+                        <option value="corporate">Corporate Site</option>
+                        <option value="other">Other / Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea name="message" class="form-input" placeholder="DESCRIBE YOUR VISION..."
+                        required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">[ SEND MESSAGE ]</button>
+            </form>
         </div>
     </div>
 </body>
