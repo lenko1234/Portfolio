@@ -118,13 +118,17 @@
             background-color: #000;
             margin: 0;
             padding: 0;
-            height: 4000vh;
+            height: 100vh;
+            /* Changed from 4000vh - no longer using native scroll */
             scrollbar-width: none;
             -ms-overflow-style: none;
-            overflow-x: hidden;
+            overflow: hidden;
+            /* Prevent native scrolling completely */
             color: #fff;
-            /* cursor: crosshair removed - blocked interaction */
-            /* touch-action: none removed - blocked clicks on some browsers */
+            touch-action: none;
+            /* Critical: Prevent browser from handling touch gestures */
+            -webkit-overflow-scrolling: auto;
+            /* Disable momentum scrolling on iOS */
         }
 
         /* Prevent text selection only in hero area to protect boids interaction */
@@ -1161,10 +1165,10 @@
          * url: optional project link
          */
         const nodes = [
-            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [6, 18], behavior: 1, image: "../assets/EsquinaJardin.png", url: "https://www.viveroesquinajardin.com.ar/" },
+            { id: 1, pos: [50, 25], text: "LANDING\nPAGES", label: "CONVERSIÓN_MÁXIMA", life: [6, 18], behavior: 1, image: "../assets/EsquinaJardin.png", url: "https://viveroesquinajardin.com.ar/" },
             { id: 2, pos: [75, 45], text: "PLATAFORMAS\nE-COMMERCE", label: "VENTAS_24/7", life: [18, 28], behavior: 2, hasBranch: true, image: "../assets/ElectroAguirre.png", url: "https://www.electroaguirre.com.ar/" },
-            { id: 3, pos: [35, 70], text: "APLICACIONES\nWEB", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "../assets/FGHerreria.png", url: "#" },
-            { id: 4, pos: [70, 30], text: "SITIOS\nCORPORATIVOS", label: "PRESENCIA_PREMIUM", life: [44, 56], behavior: 4, hasBranch: true, image: "../assets/Panzo.png", url: "https://lenko1234.github.io/Panzo.ar/" },
+            { id: 3, pos: [35, 70], text: "APLICACIONES\nWEB", label: "EXPERIENCIAS_INTERACTIVAS", life: [28, 42], behavior: 3, image: "../assets/FGHerreria.png", url: "https://www.fgherreria.com.ar/" },
+            { id: 4, pos: [70, 30], text: "SITIOS\nCORPORATIVOS", label: "PRESENCIA_PREMIUM", life: [44, 56], behavior: 4, hasBranch: true, image: "../assets/Panzo.png", url: "https://panzo.com.ar/" },
             { id: 5, pos: [50, 60], text: "DISEÑO\nPORTFOLIO", label: "IMPACTO_VISUAL", life: [58, 70], behavior: 1 }
         ];
 
@@ -1235,7 +1239,7 @@
             // Create responsive WebP images with PNG fallback
             const imageName = n.image.replace('../assets/', '').replace('.png', '');
             imageDiv.innerHTML = `
-                <a href="${n.url}" class="project-image-link" target="_blank" rel="noopener noreferrer">
+                <a href="${n.url}" class="project-image-link" target="_blank" rel="noopener noreferrer" data-project-link="true">
                     <picture>
                         <source 
                             type="image/webp"
@@ -1248,7 +1252,8 @@
                             alt="${n.text.replace('\n', ' ')}" 
                             class="project-image"
                             loading="lazy"
-                            decoding="async">
+                            decoding="async"
+                            draggable="false">
                     </picture>
                     <div class="project-overlay"></div>
                 </a>
@@ -1409,33 +1414,73 @@
             }, 50); // Small debounce to prevent multiple triggers
         }, { passive: false });
 
-        // Mobile: Touch Swipe
+        // Mobile: Touch Swipe with Intent Detection
         let touchStartY = 0;
+        let touchStartX = 0;
         let touchEndY = 0;
+        let touchEndX = 0;
+        let touchStartTime = 0;
+        let isTouchingProjectLink = false;
 
         window.addEventListener('touchstart', (e) => {
             touchStartY = e.touches[0].clientY;
-        }, { passive: true });
+            touchStartX = e.touches[0].clientX;
+            touchStartTime = Date.now();
+
+            // Check if touching a project link
+            const target = e.target.closest('[data-project-link]');
+            isTouchingProjectLink = !!target;
+        }, { passive: false });
 
         window.addEventListener('touchend', (e) => {
             touchEndY = e.changedTouches[0].clientY;
+            touchEndX = e.changedTouches[0].clientX;
             handleSwipe();
-        }, { passive: true });
+        }, { passive: false });
 
         function handleSwipe() {
             if (isAnimating) return;
-            const swipeDistance = touchStartY - touchEndY;
+
+            const swipeDistanceY = touchStartY - touchEndY;
+            const swipeDistanceX = touchStartX - touchEndX;
+            const totalMovement = Math.sqrt(swipeDistanceY * swipeDistanceY + swipeDistanceX * swipeDistanceX);
+            const touchDuration = Date.now() - touchStartTime;
+
             const minSwipeDistance = 50; // Minimum swipe distance in pixels
+            const intentThreshold = 10; // If moved more than this, it's a scroll, not a click
 
-            if (Math.abs(swipeDistance) < minSwipeDistance) return;
+            // If touching a project link and movement is minimal, it's a click - let the link work
+            if (isTouchingProjectLink && totalMovement < intentThreshold && touchDuration < 300) {
+                // This is a tap/click - allow the link to navigate
+                return;
+            }
 
-            if (swipeDistance > 0) {
+            // If touching a project link but moved significantly, prevent the link and scroll instead
+            if (isTouchingProjectLink && totalMovement >= intentThreshold) {
+                // Prevent the link from opening
+                const target = document.elementFromPoint(touchStartX, touchStartY);
+                const link = target?.closest('[data-project-link]');
+                if (link) {
+                    link.addEventListener('click', preventClick, { once: true });
+                }
+            }
+
+            // Standard swipe detection for page navigation
+            if (Math.abs(swipeDistanceY) < minSwipeDistance) return;
+
+            if (swipeDistanceY > 0) {
                 // Swipe up - go to next section
                 goToNextSection();
             } else {
                 // Swipe down - go to previous section
                 goToPreviousSection();
             }
+        }
+
+        // Helper function to prevent accidental clicks during scroll
+        function preventClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
 
         // Keyboard Navigation
